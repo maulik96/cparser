@@ -1,14 +1,19 @@
 int a;
 
-char strings()
-{}
-
 struct node{
-	int a;
+	int b;
 };
+
+
+// int strings(int b)
+// {
+// 	int b;
+// 	b = 4;
+// }
 
 int main()
 {
+	b = 4;
 	int a;
 	a = 5;
 	if (a>0)

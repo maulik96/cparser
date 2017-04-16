@@ -73,6 +73,14 @@ bool isPresent(string s)
 	return false;
 }
 
+bool isPresentCurrentScope(string s)
+{
+	int n = symbolTable.size();
+	if(symbolTable[n-1].find(s) != symbolTable[n-1].end())
+		return true;
+	return false;
+}
+
 vector<string> giveArgList(node *a)
 {
 	vector<string> ans;
@@ -188,6 +196,14 @@ void printUndefinedMsg(string var)
 	cout << "Undefined " << var << " at line no. " << yylineno << endl;
 }
 
+void printSymTable()
+{
+	map<string, string>::iterator it;
+	int n = symbolTable.size();
+	for(it=symbolTable[n-1].begin();it!=symbolTable[n-1].end();it++)
+		cout << it->first << " " << it->second << endl;
+}
+
 %}
 
 %define parse.error verbose
@@ -240,25 +256,31 @@ ext_declaration : function_definition			{ $$ = make_node(1,$1);}
 				| struct_decl			{ $$ = make_node(1,$1);}
 				;
 
-function_definition : data_type id '(' arg_list ')' compound_stmt	{
-																		if(!isPresent($2->label))
-																		{
-																			function_dt *temp = new function_dt;
-																			temp->type = $1->label;
-																			temp->v = giveArgList($4);
-																			functionTable[$2->label] = *temp;
-																			addToSymTable($2->label, $1->label);
-																			addListToSymTable($4);
-																			$$ = make_node(4,$1,$2,$4,$6);
-																		}
-																		// else if(sameFunction($1->label, $2->label, $4))
-																		// {
-																		// 	addListToSymTable($4);
-																		// 	$$ = make_node(4,$1,$2,$4,$6);
-																		// }
-																		else
-																			printMultiDeclMsg($2->label);
-																	}
+function_definition : 	data_type id '(' arg_list ')' '{'	{	
+																map<string, string>  temp;
+																symbolTable.push_back(temp);	
+															} 
+
+ 						stmt_list '}'						{
+																symbolTable.pop_back();
+																if(!isPresent($2->label))
+																{
+																	function_dt *temp = new function_dt;
+																	temp->type = $1->label;
+																	temp->v = giveArgList($4);
+																	functionTable[$2->label] = *temp;
+																	addToSymTable($2->label, $1->label);
+																	addListToSymTable($4);
+																	$$ = make_node(4,$1,$2,$4,$8);
+																}
+																// else if(sameFunction($1->label, $2->label, $4))
+																// {
+																// 	addListToSymTable($4);
+																// 	$$ = make_node(4,$1,$2,$4,$6);
+																// }
+																else
+																	printMultiDeclMsg($2->label);
+															}
 					;
 
 function_declaration: data_type id '(' arg_list ')' ';' { 
@@ -276,18 +298,25 @@ function_declaration: data_type id '(' arg_list ')' ';' {
 													}
 					;
 
-struct_decl	: STRUCT id '{' declaration_list '}' ';'	{
-															if(!isPresent($2->label))
-															{
-																struct_dt *temp = new struct_dt;
-																temp->v = getMemberList($4);
-																structTable[$2->label] = *temp;
-																addToSymTable($2->label, "struct");
-																$$ = make_node(2,$2,$4);			
-															}
-															else
-																printMultiDeclMsg($2->label);
-}
+struct_decl	: 	STRUCT id '{' 				{	
+												map<string, string>  temp;
+												symbolTable.push_back(temp);	
+											} 
+
+				declaration_list '}' ';'	{
+											symbolTable.pop_back();
+											if(!isPresent($2->label))
+											{
+												struct_dt *temp = new struct_dt;
+												temp->v = getMemberList($5);
+												structTable[$2->label] = *temp;
+												addToSymTable($2->label, "struct");
+												printSymTable();
+												$$ = make_node(2,$2,$5);			
+											}
+											else
+												printMultiDeclMsg($2->label);
+										}
 			;
 
 declaration_list	: declaration_stmt						{$$ = make_node(1, $1);}
@@ -306,7 +335,7 @@ declaration_stmt	: data_type id_list ';' {
 												vector<string> list = getIdList($2);
 												for(vector<string>::iterator it=list.begin();it!=list.end();it++)
 												{
-													if(isPresent(*it))
+													if(isPresentCurrentScope(*it))
 														printMultiDeclMsg(*it);
 													else
 														addToSymTable(*it, $1->label);
