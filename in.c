@@ -5,11 +5,10 @@ struct node{
 };
 
 
-// int strings(int b)
-// {
-// 	int b;
-// 	b = 4;
-// }
+int strings(int c)
+{
+	b = 4;
+}
 
 int main()
 {

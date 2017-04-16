@@ -311,7 +311,7 @@ struct_decl	: 	STRUCT id '{' 				{
 												temp->v = getMemberList($5);
 												structTable[$2->label] = *temp;
 												addToSymTable($2->label, "struct");
-												printSymTable();
+												// printSymTable();
 												$$ = make_node(2,$2,$5);			
 											}
 											else

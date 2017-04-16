@@ -1634,7 +1634,7 @@ yyreduce:
 												temp->v = getMemberList((yyvsp[-2]));
 												structTable[(yyvsp[-5])->label] = *temp;
 												addToSymTable((yyvsp[-5])->label, "struct");
-												printSymTable();
+												// printSymTable();
 												(yyval) = make_node(2,(yyvsp[-5]),(yyvsp[-2]));			
 											}
 											else
