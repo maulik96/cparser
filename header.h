@@ -33,15 +33,10 @@ extern int yylineno;
 extern char* yytext;
 extern int yyleng;
 vector<mss> symbolTable;
+vector<pair<mss, int> > completeTable;
 map<string, struct_dt>  structTable;
 map<string, function_dt> functionTable;
 
-void printVec(vector<string> v)
-{
-	for(vsi it=v.begin();it!=v.end();it++)
-		cout << *it << " ";
-	cout << endl;
-}
 
 node *make_node(int nargs, ...)
 {
@@ -104,6 +99,24 @@ void addToSymTable(string a, string dt)
 {
 	int n = symbolTable.size();
 	symbolTable[n-1][a] = dt;
+}
+
+void popSymTable()
+{
+	int n = symbolTable.size();
+	completeTable.push_back(make_pair(symbolTable[n-1], n-1));
+	symbolTable.pop_back();
+}
+
+void printCompleteSymTable()
+{
+	vector<pair<mss, int> >::iterator it;
+	for(it=completeTable.begin();it!=completeTable.end();it++)
+	{
+		mss m = it->first;
+		for(mssi j=m.begin();j!=m.end();j++)
+			cout << it->second << "\t" << j->first << "\t" << j->second << endl;
+	}
 }
 
 void addListToSymTable(node *a)
@@ -211,4 +224,10 @@ void printSymTable()
 	int n = symbolTable.size();
 	for(mssi it=symbolTable[n-1].begin();it!=symbolTable[n-1].end();it++)
 		cout << it->first << " " << it->second << endl;
+}
+void printVec(vector<string> v)
+{
+	for(vsi it=v.begin();it!=v.end();it++)
+		cout << *it << " ";
+	cout << endl;
 }

@@ -28,6 +28,13 @@ int main()
 		// int a;
 	}
 	int i;
+	{
+		{
+			{
+				int k;
+			}
+		}
+	}
 	i=0;
 	while(i<10)
 		i = i+1;
