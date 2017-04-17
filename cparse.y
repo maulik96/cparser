@@ -20,7 +20,7 @@ typedef struct node {
 }node;
 
 typedef struct struct_dt {
-	vector<pair<string, string> > v;
+	map<string, string> v;
 } struct_dt;
 
 typedef struct function_dt {
@@ -36,6 +36,13 @@ map<string, function_dt> functionTable;
 typedef node * node_pointer;
 
 #define YYSTYPE node_pointer
+
+void printVec(vector<string> v)
+{
+	for(vector<string>::iterator it=v.begin();it!=v.end();it++)
+		cout << *it << " ";
+	cout << endl;
+}
 
 node *make_node(int nargs, ...)
 {
@@ -128,9 +135,9 @@ vector<string> getIdList(node *a)
 	return ans;
 }	
 
-vector<pair<string, string> > getMemberList(node *a)
+map<string, string> getMemberList(node *a)
 {
-	vector<pair<string, string> > ans;
+	map<string, string> ans;
 	node *temp = a;
 	while((temp->v).size()>0)
 	{
@@ -138,7 +145,7 @@ vector<pair<string, string> > getMemberList(node *a)
 		string dt = (temp2->v)[0]->label;
 		vector<string> id_list = getIdList((temp2->v)[1]);
 		for(int i=0;i<id_list.size();i++)
-			ans.push_back(make_pair(id_list[i], dt));
+			ans[id_list[i]] =  dt;
 		if((temp->v).size()==1)
 			break;
 		temp = (temp->v)[1];
@@ -153,9 +160,9 @@ vector<string> getParamTypes(node *a)
 	while((temp->v).size()>0)
 	{
 		ans.push_back(((temp->v)[0])->data_type);
-		if((temp->v).size() == 2)
+		if((temp->v).size() == 1)
 			break;
-		temp = (temp->v)[2];
+		temp = (temp->v)[1];
 	}
 	return ans;
 }
@@ -259,19 +266,13 @@ ext_declaration : function_definition			{ $$ = make_node(1,$1);}
 function_definition : 	data_type id '(' arg_list ')' '{'	{	
 																map<string, string>  temp;
 																symbolTable.push_back(temp);	
-															} 
-
- 						stmt_list '}'						{
-																symbolTable.pop_back();
 																if(!isPresent($2->label))
 																{
 																	function_dt *temp = new function_dt;
 																	temp->type = $1->label;
 																	temp->v = giveArgList($4);
 																	functionTable[$2->label] = *temp;
-																	addToSymTable($2->label, $1->label);
 																	addListToSymTable($4);
-																	$$ = make_node(4,$1,$2,$4,$8);
 																}
 																// else if(sameFunction($1->label, $2->label, $4))
 																// {
@@ -280,7 +281,13 @@ function_definition : 	data_type id '(' arg_list ')' '{'	{
 																// }
 																else
 																	printMultiDeclMsg($2->label);
+															} 
+
+ 						stmt_list							{
+																	$$ = make_node(4,$1,$2,$4,$8);
+																
 															}
+						'}'									{symbolTable.pop_back();addToSymTable($2->label, $1->label);}
 					;
 
 function_declaration: data_type id '(' arg_list ')' ';' { 
@@ -298,25 +305,23 @@ function_declaration: data_type id '(' arg_list ')' ';' {
 													}
 					;
 
-struct_decl	: 	STRUCT id '{' 				{	
-												map<string, string>  temp;
-												symbolTable.push_back(temp);	
-											} 
+struct_decl	: 	STRUCT id '{' 		{	
+										map<string, string>  temp;
+										symbolTable.push_back(temp);	
+									} 
 
-				declaration_list '}' ';'	{
-											symbolTable.pop_back();
-											if(!isPresent($2->label))
-											{
-												struct_dt *temp = new struct_dt;
-												temp->v = getMemberList($5);
-												structTable[$2->label] = *temp;
-												addToSymTable($2->label, "struct");
-												// printSymTable();
-												$$ = make_node(2,$2,$5);			
-											}
-											else
-												printMultiDeclMsg($2->label);
+				declaration_list 	{
+										if(!isPresent($2->label))
+										{
+											struct_dt *temp = new struct_dt;
+											temp->v = getMemberList($5);
+											structTable[$2->label] = *temp;
+											$$ = make_node(2,$2,$5);			
 										}
+										else
+											printMultiDeclMsg($2->label);
+									}
+				'}' ';'             {symbolTable.pop_back();addToSymTable($2->label, "struct");}
 			;
 
 declaration_list	: declaration_stmt						{$$ = make_node(1, $1);}
@@ -329,7 +334,7 @@ id_list	: id 				{$$ = make_node(1, $1);}
 
 arg_list	: 								{$$ = make_node(0);}
 			| data_type id 					{$$ = make_node(2, $1, $2);}
-			| data_type id ',' arg_list 	{$$ = make_node(3, $1,$2,$3);}
+			| data_type id ',' arg_list 	{$$ = make_node(3, $1,$2,$4);}
 
 declaration_stmt	: data_type id_list ';' {
 												vector<string> list = getIdList($2);

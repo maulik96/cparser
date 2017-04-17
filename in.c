@@ -2,17 +2,17 @@ int a;
 
 struct node{
 	int b;
+	// char b;
 };
 
-
-int strings(int c)
+int strings(int x, int y, char c, float a)
 {
-	b = 4;
 }
+
 
 int main()
 {
-	b = 4;
+	// b = 4;
 	int a;
 	a = 5;
 	if (a>0)
@@ -20,7 +20,7 @@ int main()
 		int a;
 		a = 10;
 		a = a-1;
-		int a;
+		// int a;
 	}
-	strings(lns,2,'2',2.4);
+	strings(a,2,'2',2.4);
 }
