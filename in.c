@@ -1,5 +1,5 @@
 int a;
-
+a = 4;
 struct node{
 	int b,c,a;
 	char x;

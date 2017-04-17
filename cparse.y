@@ -26,8 +26,9 @@ strt_	: 							{ $$ = make_node(0);}
 
 ext_declaration : function_definition			{ $$ = make_node(1,$1);}
 				| function_declaration			{ $$ = make_node(1,$1);}
-				| declaration_stmt			{ $$ = make_node(1,$1);}
-				| struct_decl			{ $$ = make_node(1,$1);}
+				| declaration_stmt				{ $$ = make_node(1,$1);}
+				| struct_decl					{ $$ = make_node(1,$1);}
+				| expr_stmt						{ $$ = make_node(1,$1);}
 				;
 
 function_definition : 	data_type id '(' arg_list ')' '{'	{	
