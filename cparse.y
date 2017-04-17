@@ -18,7 +18,7 @@ typedef node * node_pointer;
 
 %%
 
-start 	: strt_ 	{ $$ = make_node(1,$1);popSymTable();printCompleteSymTable();dfs($$,0);}
+start 	: strt_ 	{ $$ = make_node(1,$1);popSymTable();printCompleteSymTable();}
 		;
 
 strt_	: 							{ $$ = make_node(0);}
@@ -31,8 +31,7 @@ ext_declaration : function_definition			{ $$ = make_node(1,$1);}
 				;
 
 function_definition : 	data_type id '(' arg_list ')' '{'	{	
-																mss temp;
-																symbolTable.push_back(temp);	
+																pushSymTable();	
 																if(!isPresent($2->label))
 																{
 																	function_dt *temp = new function_dt;
@@ -67,8 +66,7 @@ function_declaration: data_type id '(' arg_list ')' ';' {
 					;
 
 struct_decl	: 	STRUCT id '{' 		{	
-										mss temp;
-										symbolTable.push_back(temp);	
+										pushSymTable();	
 									} 
 
 				declaration_list '}' ';'{
@@ -98,22 +96,39 @@ arg_list	: 								{$$ = make_node(0);}
 			| data_type id 					{$$ = make_node(2, $1, $2);}
 			| data_type id ',' arg_list 	{$$ = make_node(3, $1,$2,$4);}
 
-declaration_stmt	: data_type id_list ';' {
-												vs list = getIdList($2);
-												for(vsi it=list.begin();it!=list.end();it++)
-												{
-													if(isPresentCurrentScope(*it))
-														printMultiDeclMsg(*it);
-													else
-														addToSymTable(*it, $1->label);
+declaration_stmt	: data_type id_list ';'	{
+													vs list = getIdList($2);
+													for(vsi it=list.begin();it!=list.end();it++)
+													{
+														if(isPresentCurrentScope(*it))
+															printMultiDeclMsg(*it);
+														else
+															addToSymTable(*it, $1->label);
+													}
+													$$ = make_node(2, $1, $2);
 												}
-												$$ = make_node(2, $1, $2);
-											}
+					| data_type id brackets ';' {
+													$$ = make_node(3,$1,$2,$3); 
+													addToSymTable($2->label, $1->label+"*");
+													addToArrayTable($2->label, $3);
+												}
 					;
 
+brackets	: '[' expr ']' 			{
+										if($2->data_type == "int")
+											$$ = make_node(1,$2);
+										else
+											printDtMismatch();
+									}
+			| '[' expr ']' brackets {
+										if($2->data_type == "int")
+											$$ = make_node(2,$2,$4);
+										else
+											printDtMismatch();
+									}
+
 compound_stmt	: '{'			{	
-									mss temp;
-									symbolTable.push_back(temp);	
+									pushSymTable();	
 								} 
 				stmt_list '}'	{ 
 									popSymTable();
@@ -173,6 +188,26 @@ expr 	: INT_LITERAL				{$$ = make_node(1, make_terminal_node(string(yytext, yyle
 												printNotMember($1->label, $3->label);
 										}
 									}
+		| id brackets				{
+										if(!isPresent($1->label))
+											printUndefinedMsg($1->label);
+										else
+										{
+											$$ = make_node(2,$1,$2);
+											int n = isValidArray($1->label, $2);
+											if(n == 1)
+												$$->data_type = $1->data_type.substr(0,($1->data_type).size()-1);
+											else if(n==2)
+												$$->data_type = $1->data_type;
+											else if(n==0)
+											{
+												$$->data_type = $1->data_type.substr(0,($1->data_type).size()-1);
+												printOutOfBoundsMsg($1->label);
+											}
+											else
+												printUndefinedMsg($1->label);
+										}
+									}
 		| expr op expr 				{
 										$$ = make_node(3,$1,$2,$3); 
 										$$->data_type = "int";
@@ -217,8 +252,7 @@ param_list	:
 
 int main(void)
 {
-	map<string, string> temp;
-	symbolTable.push_back(temp);
+	pushSymTable();
     return yyparse();
 }
 

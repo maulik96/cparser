@@ -14,7 +14,9 @@ int strings(int x, int y, char c, float a)
 
 int main()
 {
-	// b = 4;
+	int arr[10][100];
+	arr[2][50] = 2;
+	arr[2][500] = 2;
 	struct node x;
 	x.y = 2.5;
 	int a;

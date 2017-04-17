@@ -2,6 +2,7 @@
 
 using namespace std;
 
+#define vi vector<int>
 #define vs vector<string>
 #define vsi vs::iterator
 #define mss map<string, string>
@@ -36,6 +37,7 @@ vector<mss> symbolTable;
 vector<pair<mss, int> > completeTable;
 map<string, struct_dt>  structTable;
 map<string, function_dt> functionTable;
+vector<map<string, pair<int, vi> > > arrayTable;
 
 
 node *make_node(int nargs, ...)
@@ -101,15 +103,25 @@ void addToSymTable(string a, string dt)
 	symbolTable[n-1][a] = dt;
 }
 
+void pushSymTable()
+{
+	mss temp;
+	symbolTable.push_back(temp);
+	map<string, pair<int, vi> > m;
+	arrayTable.push_back(m);
+}
+
 void popSymTable()
 {
 	int n = symbolTable.size();
 	completeTable.push_back(make_pair(symbolTable[n-1], n-1));
 	symbolTable.pop_back();
+	arrayTable.pop_back();
 }
 
 void printCompleteSymTable()
 {
+	cout << "Level\tvar\tdata tyoe" << endl;
 	vector<pair<mss, int> >::iterator it;
 	for(it=completeTable.begin();it!=completeTable.end();it++)
 	{
@@ -199,6 +211,61 @@ bool similarDataType(node *a, node *b)
 	return false;
 }
 
+void addToArrayTable(string name, node *a)
+{
+	int n = arrayTable.size();
+	node *temp = a;
+	vi v;
+	while((temp->v).size() > 0)
+	{
+		node *x = (temp->v)[0];
+		if(!x || (x->v).size()==0)
+			return;
+		node *y = (x->v)[0];
+		if(y->type == int_node)
+			v.push_back(atoi(y->label.c_str()));
+		else
+			v.push_back(1000000000);
+		if((temp->v).size() == 1)
+			break;
+		else
+			temp = (temp->v)[1];
+	}
+	arrayTable[n-1][name] = make_pair(v.size(), v);
+}
+
+int isValidArray(string name, node *a)
+{
+	int n = arrayTable.size();
+	map<string, pair<int,vi> >::iterator it = arrayTable[n-1].find(name);
+	if(it==arrayTable[n-1].end())
+		return -1;
+	node *temp = a;
+	int size = 0, flag = 1;
+	while((temp->v).size() > 0)
+	{
+		if(size == (it->second).first)
+			return 0;
+		node *x = (temp->v)[0];
+		node *y = (x->v)[0];
+		if(!x || (x->v).size()==0)
+			return -1;
+		if(y->type == int_node)
+			if((atoi(y->label.c_str()) >= ((it->second).second)[size]) || atoi(y->label.c_str()) < 0)
+				flag = 0;
+		size++;
+		if((temp->v).size() == 1)
+			break;
+		else
+			temp = (temp->v)[1];
+	}
+	if(flag == 0)
+		return 0;
+	if(size != (it->second).first)
+		return 2;
+	return 1;
+}
+
 void dfs(node *root,int level)
 {
 
@@ -240,6 +307,10 @@ void printNotMember(string a, string b)
 void printArgsMismatch(string a)
 {
 	cout << "Arguments mismatch for " << a << " at line no. " << yylineno << endl; 
+}
+void printOutOfBoundsMsg(string a)
+{
+	cout << "Array index out of bounds for " << a << " at line no. " << yylineno << endl; 
 }
 void printSymTable()
 {
