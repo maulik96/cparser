@@ -1,253 +1,18 @@
 %{
 #include <bits/stdc++.h>
+#include "header.h"
 
 using namespace std;
-
-void yyerror(const char *s);
-int yylex();
-
-extern int yylineno;
-extern char* yytext;
-extern int yyleng;
-
-enum nodetype {nt_node, int_node, float_node, char_node, op_node, id_node, dt_node};
-
-typedef struct node {
-	vector<struct node * > v;
-	enum nodetype type;
-	string data_type;
-	string label;	
-}node;
-
-typedef struct struct_dt {
-	map<string, string> v;
-} struct_dt;
-
-typedef struct function_dt {
-	vector<string> v;
-	string type;
-} function_dt;
-
-vector<map<string, string> > symbolTable;
-map<string, struct_dt>  structTable;
-map<string, function_dt> functionTable;
-
 
 typedef node * node_pointer;
 
 #define YYSTYPE node_pointer
 
-void printVec(vector<string> v)
-{
-	for(vector<string>::iterator it=v.begin();it!=v.end();it++)
-		cout << *it << " ";
-	cout << endl;
-}
-
-node *make_node(int nargs, ...)
-{
-	node *temp= new node;
-    temp->type = nt_node;
-    va_list valist;
-    va_start(valist, nargs);
-    int i;
-    for(i=0;i<nargs;i++)
-        (temp->v).push_back(va_arg(valist, node *));
-    return temp;
-}
-
-string getDataType(string s)
-{
-	int n = symbolTable.size();
-	for(int i=n-1;i>=0;i--)
-	{
-		map<string, string>::iterator it;
-		it = symbolTable[i].find(s);
-		if(it != symbolTable[i].end())
-			return it->second;
-	}
-	return "";
-}
-
-bool isPresent(string s)
-{
-	int n = symbolTable.size();
-	for(int i=n-1;i>=0;i--)
-	{
-		if(symbolTable[i].find(s) != symbolTable[i].end())
-			return true;
-	}
-	return false;
-}
-
-bool isPresentCurrentScope(string s)
-{
-	int n = symbolTable.size();
-	if(symbolTable[n-1].find(s) != symbolTable[n-1].end())
-		return true;
-	return false;
-}
-
-vector<string> giveArgList(node *a)
-{
-	vector<string> ans;
-	node *temp = a;
-	while((temp->v).size()>0)
-	{
-		ans.push_back(((temp->v)[0])->label);
-		if((temp->v).size() == 2)
-			break;
-		temp = (temp->v)[2];
-	}
-	return ans;
-}	
-
-void addToSymTable(string a, string dt)
-{
-	int n = symbolTable.size();
-	symbolTable[n-1][a] = dt;
-}
-
-void addListToSymTable(node *a)
-{
-	node *temp = a;
-	int n = symbolTable.size();
-	while((temp->v).size()>0)
-	{
-		symbolTable[n-1][((temp->v)[1])->label] = ((temp->v)[0])->label;
-		if((temp->v).size() == 2)
-			break;
-		temp = (temp->v)[2];
-	}
-}	
-
-vector<string> getIdList(node *a)
-{
-	vector<string> ans;
-	node *temp = a;
-	while((temp->v).size()>0)
-	{
-		ans.push_back(((temp->v)[0])->label);
-		if((temp->v).size() == 1)
-			break;
-		temp = (temp->v)[1];
-	}
-	return ans;
-}	
-
-map<string, string> getAllVarsCurrentScope()
-{
-	int n = symbolTable.size();
-	return symbolTable[n-1];
-}
-
-vector<string> getParamTypes(node *a)
-{
-	vector<string> ans;
-	node *temp = a;
-	while((temp->v).size()>0)
-	{
-		ans.push_back(((temp->v)[0])->data_type);
-		if((temp->v).size() == 1)
-			break;
-		temp = (temp->v)[1];
-	}
-	return ans;
-}
-
-bool similarArgs(node *a, node *b)
-{
-	vector<string> x = ((functionTable.find(a->label))->second).v;
-	vector<string> y = getParamTypes(b);
-	if(x.size() != y.size())
-		return false;
-	for(int i=0;i<x.size();i++)
-		if(x[i] != y[i])
-			return false;
-	return true;
-}
-
-node *make_terminal_node(string s, enum nodetype type)
-{
-	node *temp= new node;
-    temp->type = type;
-    temp->label = s;
-    if(type == int_node)
-    	temp->data_type = "int";
-    else if(type == char_node)
-    	temp->data_type = "char";
-    else if(type == float_node)
-    	temp->data_type = "float";
-    return temp;
-}
-
-bool similarDataType(node *a, node *b)
-{
-	if(a && b)
-		if(a->data_type == b->data_type)
-			return true;
-	return false;
-}
-
-void printMultiDeclMsg(string var)
-{
-	cout << "Multiple declarations for " << var << " at line no. " << yylineno << endl;
-}
-void printUndefinedMsg(string var)
-{
-	cout << "Undefined " << var << " at line no. " << yylineno << endl;
-}
-void printDtMismatch()
-{
-	cout << "Mismatching data types of operands at line no. " << yylineno << endl; 
-}
-void printNotMember(string a, string b)
-{
-	cout << b << "is not a member of " << a << " at line no. " << yylineno << endl; 
-}
-void printSymTable()
-{
-	map<string, string>::iterator it;
-	int n = symbolTable.size();
-	for(it=symbolTable[n-1].begin();it!=symbolTable[n-1].end();it++)
-		cout << it->first << " " << it->second << endl;
-}
-
 %}
 
 %define parse.error verbose
 
-%token IF
-%token ELSE
-%token WHILE
-%token DO
-%token FOR
-%token RETURN
-%token CONTINUE
-%token BREAK
-%token STRUCT
-%token STRING_LITERAL
-%token CHAR_LITERAL
-%token DATA_TYPE
-%token INT_LITERAL
-%token FLOAT_LITERAL
-%token IDENTIFIER
-%token ADD_ASSIGN
-%token SUB_ASSIGN
-%token MUL_ASSIGN
-%token DIV_ASSIGN
-%token MOD_ASSIGN
-%token AND_ASSIGN
-%token XOR_ASSIGN
-%token OR_ASSIGN
-%token RIGHT_OP
-%token LEFT_OP
-%token INC_OP
-%token DEC_OP
-%token REL_OP
-%token MATH_OP
-%token EQUAL_OP
-
+%token IF ELSE WHILE DO FOR RETURN CONTINUE BREAK STRUCT STRING_LITERAL CHAR_LITERAL DATA_TYPE INT_LITERAL FLOAT_LITERAL IDENTIFIER ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN AND_ASSIGN XOR_ASSIGN OR_ASSIGN RIGHT_OP LEFT_OP INC_OP DEC_OP REL_OP MATH_OP EQUAL_OP
 
 %start start
 
@@ -266,7 +31,7 @@ ext_declaration : function_definition			{ $$ = make_node(1,$1);}
 				;
 
 function_definition : 	data_type id '(' arg_list ')' '{'	{	
-																map<string, string>  temp;
+																mss temp;
 																symbolTable.push_back(temp);	
 																if(!isPresent($2->label))
 																{
@@ -276,39 +41,30 @@ function_definition : 	data_type id '(' arg_list ')' '{'	{
 																	functionTable[$2->label] = *temp;
 																	addListToSymTable($4);
 																}
-																// else if(sameFunction($1->label, $2->label, $4))
-																// {
-																// 	addListToSymTable($4);
-																// 	$$ = make_node(4,$1,$2,$4,$6);
-																// }
 																else
 																	printMultiDeclMsg($2->label);
 															} 
-
- 						stmt_list							{
-																	$$ = make_node(4,$1,$2,$4,$8);
-																
-															}
+ 						stmt_list							{$$ = make_node(4,$1,$2,$4,$8);}
 						'}'									{symbolTable.pop_back();addToSymTable($2->label, $1->label);}
 					;
 
 function_declaration: data_type id '(' arg_list ')' ';' { 
-														if(!isPresent($2->label))
-														{
-															function_dt *temp = new function_dt;
-															temp->type = $1->label;
-															temp->v = giveArgList($4);
-															functionTable[$2->label] = *temp;
-															addToSymTable($2->label, $1->label);
-															$$ = make_node(3,$1,$2,$4);
+															if(!isPresent($2->label))
+															{
+																function_dt *temp = new function_dt;
+																temp->type = $1->label;
+																temp->v = giveArgList($4);
+																functionTable[$2->label] = *temp;
+																addToSymTable($2->label, $1->label);
+																$$ = make_node(3,$1,$2,$4);
+															}
+															else
+																printMultiDeclMsg($2->label);
 														}
-														else
-															printMultiDeclMsg($2->label);
-													}
 					;
 
 struct_decl	: 	STRUCT id '{' 		{	
-										map<string, string>  temp;
+										mss temp;
 										symbolTable.push_back(temp);	
 									} 
 
@@ -339,8 +95,8 @@ arg_list	: 								{$$ = make_node(0);}
 			| data_type id ',' arg_list 	{$$ = make_node(3, $1,$2,$4);}
 
 declaration_stmt	: data_type id_list ';' {
-												vector<string> list = getIdList($2);
-												for(vector<string>::iterator it=list.begin();it!=list.end();it++)
+												vs list = getIdList($2);
+												for(vsi it=list.begin();it!=list.end();it++)
 												{
 													if(isPresentCurrentScope(*it))
 														printMultiDeclMsg(*it);
@@ -352,7 +108,7 @@ declaration_stmt	: data_type id_list ';' {
 					;
 
 compound_stmt	: '{'			{	
-									map<string, string>  temp;
+									mss temp;
 									symbolTable.push_back(temp);	
 								} 
 				stmt_list '}'	{ 
@@ -402,8 +158,8 @@ expr 	: INT_LITERAL				{$$ = make_node(1, make_terminal_node(string(yytext, yyle
 											printNotMember($1->label, $3->label);
 										else
 										{
-											map<string, string> m = ((structTable.find(getDataType($1->label)))->second).v;
-											map<string, string>::iterator it = m.find($3->label);
+											mss m = ((structTable.find(getDataType($1->label)))->second).v;
+											mssi it = m.find($3->label);
 											if(it != m.end())
 											{
 												$$ = make_node(2,$1,$3);
@@ -428,7 +184,7 @@ expr 	: INT_LITERAL				{$$ = make_node(1, make_terminal_node(string(yytext, yyle
 											$$->data_type = $1->data_type;
 										}
 										else
-											cout << "Arguments mismatch for " << $1->label << " at line no. " << yylineno << endl; 
+											printArgsMismatch($1->label);
 									}
 		;
 
