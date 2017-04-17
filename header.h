@@ -199,6 +199,28 @@ bool similarDataType(node *a, node *b)
 	return false;
 }
 
+void dfs(node *root,int level)
+{
+
+	printf("%*s", level,"");
+	if(root==NULL){
+		cout<<"NULL"<<endl;
+		return;
+	}
+	cout << (root->v).size() << " ";
+	if(root->type != nt_node)
+		cout << root->label << endl;
+	else
+		cout << root->type <<  endl;
+	for (int i = 0; i < (root->v).size(); ++i)
+	{
+		dfs((root->v)[i],level+4);
+	}
+}
+
+
+
+
 void printMultiDeclMsg(string var)
 {
 	cout << "Multiple declarations for " << var << " at line no. " << yylineno << endl;

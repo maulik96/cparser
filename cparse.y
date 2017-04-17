@@ -18,11 +18,11 @@ typedef node * node_pointer;
 
 %%
 
-start 	: strt_ 	{ $$ = make_node(1,$1);popSymTable();printCompleteSymTable();}
+start 	: strt_ 	{ $$ = make_node(1,$1);popSymTable();printCompleteSymTable();dfs($$,0);}
 		;
 
 strt_	: 							{ $$ = make_node(0);}
-		| ext_declaration strt_ 	{ $$ = make_node(2,1,$2);}
+		| ext_declaration strt_ 	{ $$ = make_node(2,$1,$2);}
 
 ext_declaration : function_definition			{ $$ = make_node(1,$1);}
 				| function_declaration			{ $$ = make_node(1,$1);}
@@ -44,8 +44,11 @@ function_definition : 	data_type id '(' arg_list ')' '{'	{
 																else
 																	printMultiDeclMsg($2->label);
 															} 
- 						stmt_list							{$$ = make_node(4,$1,$2,$4,$8);}
-						'}'									{popSymTable();addToSymTable($2->label, $1->label);}
+ 						stmt_list '}'					    {
+ 																$$ = make_node(4,$1,$2,$4,$8);
+ 																popSymTable();
+ 																addToSymTable($2->label, $1->label);
+ 															}
 					;
 
 function_declaration: data_type id '(' arg_list ')' ';' { 
@@ -68,18 +71,19 @@ struct_decl	: 	STRUCT id '{' 		{
 										symbolTable.push_back(temp);	
 									} 
 
-				declaration_list 	{
-										if(!isPresent($2->label))
-										{
-											struct_dt *temp = new struct_dt;
-											temp->v = getAllVarsCurrentScope();
-											structTable[$2->label] = *temp;
-											$$ = make_node(2,$2,$5);			
+				declaration_list '}' ';'{
+											if(!isPresent($2->label))
+											{
+												struct_dt *temp = new struct_dt;
+												temp->v = getAllVarsCurrentScope();
+												structTable[$2->label] = *temp;
+												$$ = make_node(2,$2,$5);			
+											}
+											else
+												printMultiDeclMsg($2->label);
+											popSymTable();
+											addToSymTable($2->label, "struct");
 										}
-										else
-											printMultiDeclMsg($2->label);
-									}
-				'}' ';'             {popSymTable();addToSymTable($2->label, "struct");}
 			;
 
 declaration_list	: declaration_stmt						{$$ = make_node(1, $1);}
@@ -113,7 +117,7 @@ compound_stmt	: '{'			{
 								} 
 				stmt_list '}'	{ 
 									popSymTable();
-									$$ = make_node(1,$2);
+									$$ = make_node(1,$3);
 								}	
 				;
 
