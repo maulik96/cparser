@@ -135,22 +135,10 @@ vector<string> getIdList(node *a)
 	return ans;
 }	
 
-map<string, string> getMemberList(node *a)
+map<string, string> getAllVarsCurrentScope()
 {
-	map<string, string> ans;
-	node *temp = a;
-	while((temp->v).size()>0)
-	{
-		node *temp2 = (temp->v)[0];
-		string dt = (temp2->v)[0]->label;
-		vector<string> id_list = getIdList((temp2->v)[1]);
-		for(int i=0;i<id_list.size();i++)
-			ans[id_list[i]] =  dt;
-		if((temp->v).size()==1)
-			break;
-		temp = (temp->v)[1];
-	}
-	return ans;
+	int n = symbolTable.size();
+	return symbolTable[n-1];
 }
 
 vector<string> getParamTypes(node *a)
@@ -212,6 +200,10 @@ void printUndefinedMsg(string var)
 void printDtMismatch()
 {
 	cout << "Mismatching data types of operands at line no. " << yylineno << endl; 
+}
+void printNotMember(string a, string b)
+{
+	cout << b << "is not a member of " << a << " at line no. " << yylineno << endl; 
 }
 void printSymTable()
 {
@@ -324,7 +316,7 @@ struct_decl	: 	STRUCT id '{' 		{
 										if(!isPresent($2->label))
 										{
 											struct_dt *temp = new struct_dt;
-											temp->v = getMemberList($5);
+											temp->v = getAllVarsCurrentScope();
 											structTable[$2->label] = *temp;
 											$$ = make_node(2,$2,$5);			
 										}
@@ -403,6 +395,24 @@ expr 	: INT_LITERAL				{$$ = make_node(1, make_terminal_node(string(yytext, yyle
 											$$->data_type = $1->data_type;
 										}
 									}
+		| id '.' id 				{
+										if(!isPresent($1->label))
+											printUndefinedMsg($1->label);
+										else if(structTable.find(getDataType($1->label)) == structTable.end())
+											printNotMember($1->label, $3->label);
+										else
+										{
+											map<string, string> m = ((structTable.find(getDataType($1->label)))->second).v;
+											map<string, string>::iterator it = m.find($3->label);
+											if(it != m.end())
+											{
+												$$ = make_node(2,$1,$3);
+												$$->data_type = it->second;
+											}
+											else
+												printNotMember($1->label, $3->label);
+										}
+									}
 		| expr op expr 				{
 										$$ = make_node(3,$1,$2,$3); 
 										$$->data_type = "int";
@@ -432,6 +442,11 @@ id 	: IDENTIFIER 	{ $$ = make_terminal_node(string(yytext, yyleng), id_node); $$
 
 
 data_type 	: DATA_TYPE {$$ = make_terminal_node(string(yytext, yyleng), dt_node);}
+			| STRUCT id {
+							if(!isPresent($2->label) || getDataType($2->label)!="struct")
+								printUndefinedMsg("struct "+$2->label);
+							$$ = make_terminal_node($2->label, dt_node);
+						}
 			; 
 
 param_list	: 
