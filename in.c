@@ -18,9 +18,10 @@ int main()
 	if (a>0)
 	{
 		int a;
-		a = 10;
+		a = 5.45;
 		a = a-1;
 		// int a;
 	}
-	strings(a,2,'2',2.4);
+	char c;
+	c = strings(a,2,'2',2.4);
 }

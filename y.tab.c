@@ -258,6 +258,13 @@ node *make_terminal_node(string s, enum nodetype type)
     return temp;
 }
 
+bool similarDataType(node *a, node *b)
+{
+	if(a && b)
+		if(a->data_type == b->data_type)
+			return true;
+	return false;
+}
 
 void printMultiDeclMsg(string var)
 {
@@ -267,7 +274,10 @@ void printUndefinedMsg(string var)
 {
 	cout << "Undefined " << var << " at line no. " << yylineno << endl;
 }
-
+void printDtMismatch()
+{
+	cout << "Mismatching data types of operands at line no. " << yylineno << endl; 
+}
 void printSymTable()
 {
 	map<string, string>::iterator it;
@@ -277,7 +287,7 @@ void printSymTable()
 }
 
 
-#line 281 "y.tab.c" /* yacc.c:339  */
+#line 291 "y.tab.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -392,7 +402,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 396 "y.tab.c" /* yacc.c:358  */
+#line 406 "y.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -692,12 +702,12 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,   254,   254,   257,   258,   260,   261,   262,   263,   266,
-     286,   266,   293,   308,   313,   308,   327,   328,   331,   332,
-     335,   336,   337,   339,   352,   352,   362,   363,   366,   367,
-     368,   369,   370,   371,   374,   377,   378,   381,   384,   385,
-     386,   387,   396,   397,   410,   411,   412,   415,   419,   422,
-     423,   424
+       0,   264,   264,   267,   268,   270,   271,   272,   273,   276,
+     296,   276,   303,   318,   323,   318,   337,   338,   341,   342,
+     345,   346,   347,   349,   362,   362,   372,   373,   376,   377,
+     378,   379,   380,   381,   384,   387,   388,   391,   394,   395,
+     396,   397,   406,   412,   425,   426,   427,   430,   434,   437,
+     438,   439
 };
 #endif
 
@@ -1532,49 +1542,49 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 254 "cparse.y" /* yacc.c:1646  */
+#line 264 "cparse.y" /* yacc.c:1646  */
     { (yyval) = make_node(1,(yyvsp[0]));}
-#line 1538 "y.tab.c" /* yacc.c:1646  */
+#line 1548 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 3:
-#line 257 "cparse.y" /* yacc.c:1646  */
+#line 267 "cparse.y" /* yacc.c:1646  */
     { (yyval) = make_node(0);}
-#line 1544 "y.tab.c" /* yacc.c:1646  */
+#line 1554 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 4:
-#line 258 "cparse.y" /* yacc.c:1646  */
+#line 268 "cparse.y" /* yacc.c:1646  */
     { (yyval) = make_node(2,1,(yyvsp[0]));}
-#line 1550 "y.tab.c" /* yacc.c:1646  */
+#line 1560 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 5:
-#line 260 "cparse.y" /* yacc.c:1646  */
+#line 270 "cparse.y" /* yacc.c:1646  */
     { (yyval) = make_node(1,(yyvsp[0]));}
-#line 1556 "y.tab.c" /* yacc.c:1646  */
+#line 1566 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 6:
-#line 261 "cparse.y" /* yacc.c:1646  */
+#line 271 "cparse.y" /* yacc.c:1646  */
     { (yyval) = make_node(1,(yyvsp[0]));}
-#line 1562 "y.tab.c" /* yacc.c:1646  */
+#line 1572 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 7:
-#line 262 "cparse.y" /* yacc.c:1646  */
+#line 272 "cparse.y" /* yacc.c:1646  */
     { (yyval) = make_node(1,(yyvsp[0]));}
-#line 1568 "y.tab.c" /* yacc.c:1646  */
+#line 1578 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 8:
-#line 263 "cparse.y" /* yacc.c:1646  */
+#line 273 "cparse.y" /* yacc.c:1646  */
     { (yyval) = make_node(1,(yyvsp[0]));}
-#line 1574 "y.tab.c" /* yacc.c:1646  */
+#line 1584 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 9:
-#line 266 "cparse.y" /* yacc.c:1646  */
+#line 276 "cparse.y" /* yacc.c:1646  */
     {	
 																map<string, string>  temp;
 																symbolTable.push_back(temp);	
@@ -1594,26 +1604,26 @@ yyreduce:
 																else
 																	printMultiDeclMsg((yyvsp[-4])->label);
 															}
-#line 1598 "y.tab.c" /* yacc.c:1646  */
+#line 1608 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 10:
-#line 286 "cparse.y" /* yacc.c:1646  */
+#line 296 "cparse.y" /* yacc.c:1646  */
     {
 																	(yyval) = make_node(4,(yyvsp[-7]),(yyvsp[-6]),(yyvsp[-4]),(yyvsp[0]));
 																
 															}
-#line 1607 "y.tab.c" /* yacc.c:1646  */
+#line 1617 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 11:
-#line 290 "cparse.y" /* yacc.c:1646  */
+#line 300 "cparse.y" /* yacc.c:1646  */
     {symbolTable.pop_back();addToSymTable((yyvsp[-8])->label, (yyvsp[-9])->label);}
-#line 1613 "y.tab.c" /* yacc.c:1646  */
+#line 1623 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 12:
-#line 293 "cparse.y" /* yacc.c:1646  */
+#line 303 "cparse.y" /* yacc.c:1646  */
     { 
 														if(!isPresent((yyvsp[-4])->label))
 														{
@@ -1627,20 +1637,20 @@ yyreduce:
 														else
 															printMultiDeclMsg((yyvsp[-4])->label);
 													}
-#line 1631 "y.tab.c" /* yacc.c:1646  */
+#line 1641 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 13:
-#line 308 "cparse.y" /* yacc.c:1646  */
+#line 318 "cparse.y" /* yacc.c:1646  */
     {	
 										map<string, string>  temp;
 										symbolTable.push_back(temp);	
 									}
-#line 1640 "y.tab.c" /* yacc.c:1646  */
+#line 1650 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 14:
-#line 313 "cparse.y" /* yacc.c:1646  */
+#line 323 "cparse.y" /* yacc.c:1646  */
     {
 										if(!isPresent((yyvsp[-3])->label))
 										{
@@ -1652,59 +1662,59 @@ yyreduce:
 										else
 											printMultiDeclMsg((yyvsp[-3])->label);
 									}
-#line 1656 "y.tab.c" /* yacc.c:1646  */
+#line 1666 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 15:
-#line 324 "cparse.y" /* yacc.c:1646  */
+#line 334 "cparse.y" /* yacc.c:1646  */
     {symbolTable.pop_back();addToSymTable((yyvsp[-6])->label, "struct");}
-#line 1662 "y.tab.c" /* yacc.c:1646  */
+#line 1672 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 16:
-#line 327 "cparse.y" /* yacc.c:1646  */
+#line 337 "cparse.y" /* yacc.c:1646  */
     {(yyval) = make_node(1, (yyvsp[0]));}
-#line 1668 "y.tab.c" /* yacc.c:1646  */
+#line 1678 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 17:
-#line 328 "cparse.y" /* yacc.c:1646  */
+#line 338 "cparse.y" /* yacc.c:1646  */
     {(yyval) = make_node(2, (yyvsp[-1]), (yyvsp[0]));}
-#line 1674 "y.tab.c" /* yacc.c:1646  */
+#line 1684 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 18:
-#line 331 "cparse.y" /* yacc.c:1646  */
+#line 341 "cparse.y" /* yacc.c:1646  */
     {(yyval) = make_node(1, (yyvsp[0]));}
-#line 1680 "y.tab.c" /* yacc.c:1646  */
+#line 1690 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 19:
-#line 332 "cparse.y" /* yacc.c:1646  */
+#line 342 "cparse.y" /* yacc.c:1646  */
     {(yyval) = make_node(2, (yyvsp[-2]), (yyvsp[0]));}
-#line 1686 "y.tab.c" /* yacc.c:1646  */
+#line 1696 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 20:
-#line 335 "cparse.y" /* yacc.c:1646  */
+#line 345 "cparse.y" /* yacc.c:1646  */
     {(yyval) = make_node(0);}
-#line 1692 "y.tab.c" /* yacc.c:1646  */
+#line 1702 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 21:
-#line 336 "cparse.y" /* yacc.c:1646  */
+#line 346 "cparse.y" /* yacc.c:1646  */
     {(yyval) = make_node(2, (yyvsp[-1]), (yyvsp[0]));}
-#line 1698 "y.tab.c" /* yacc.c:1646  */
+#line 1708 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 22:
-#line 337 "cparse.y" /* yacc.c:1646  */
+#line 347 "cparse.y" /* yacc.c:1646  */
     {(yyval) = make_node(3, (yyvsp[-3]),(yyvsp[-2]),(yyvsp[0]));}
-#line 1704 "y.tab.c" /* yacc.c:1646  */
+#line 1714 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 23:
-#line 339 "cparse.y" /* yacc.c:1646  */
+#line 349 "cparse.y" /* yacc.c:1646  */
     {
 												vector<string> list = getIdList((yyvsp[-1]));
 												for(vector<string>::iterator it=list.begin();it!=list.end();it++)
@@ -1716,113 +1726,113 @@ yyreduce:
 												}
 												(yyval) = make_node(2, (yyvsp[-2]), (yyvsp[-1]));
 											}
-#line 1720 "y.tab.c" /* yacc.c:1646  */
+#line 1730 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 24:
-#line 352 "cparse.y" /* yacc.c:1646  */
+#line 362 "cparse.y" /* yacc.c:1646  */
     {	
 									map<string, string>  temp;
 									symbolTable.push_back(temp);	
 								}
-#line 1729 "y.tab.c" /* yacc.c:1646  */
+#line 1739 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 25:
-#line 356 "cparse.y" /* yacc.c:1646  */
+#line 366 "cparse.y" /* yacc.c:1646  */
     { 
 									symbolTable.pop_back();
 									(yyval) = make_node(1,(yyvsp[-2]));
 								}
-#line 1738 "y.tab.c" /* yacc.c:1646  */
+#line 1748 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 26:
-#line 362 "cparse.y" /* yacc.c:1646  */
+#line 372 "cparse.y" /* yacc.c:1646  */
     { (yyval) = make_node(0); }
-#line 1744 "y.tab.c" /* yacc.c:1646  */
+#line 1754 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 27:
-#line 363 "cparse.y" /* yacc.c:1646  */
+#line 373 "cparse.y" /* yacc.c:1646  */
     { (yyval) = make_node(2,(yyvsp[-1]),(yyvsp[0])); }
-#line 1750 "y.tab.c" /* yacc.c:1646  */
+#line 1760 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 28:
-#line 366 "cparse.y" /* yacc.c:1646  */
+#line 376 "cparse.y" /* yacc.c:1646  */
     { (yyval) = make_node(1,(yyvsp[0])); }
-#line 1756 "y.tab.c" /* yacc.c:1646  */
+#line 1766 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 29:
-#line 367 "cparse.y" /* yacc.c:1646  */
+#line 377 "cparse.y" /* yacc.c:1646  */
     { (yyval) = make_node(1,(yyvsp[0])); }
-#line 1762 "y.tab.c" /* yacc.c:1646  */
+#line 1772 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 30:
-#line 368 "cparse.y" /* yacc.c:1646  */
+#line 378 "cparse.y" /* yacc.c:1646  */
     { (yyval) = make_node(1,(yyvsp[0])); }
-#line 1768 "y.tab.c" /* yacc.c:1646  */
+#line 1778 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 31:
-#line 369 "cparse.y" /* yacc.c:1646  */
+#line 379 "cparse.y" /* yacc.c:1646  */
     { (yyval) = make_node(1,(yyvsp[0])); }
-#line 1774 "y.tab.c" /* yacc.c:1646  */
+#line 1784 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 32:
-#line 370 "cparse.y" /* yacc.c:1646  */
+#line 380 "cparse.y" /* yacc.c:1646  */
     { (yyval) = make_node(1,(yyvsp[0])); }
-#line 1780 "y.tab.c" /* yacc.c:1646  */
+#line 1790 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 34:
-#line 374 "cparse.y" /* yacc.c:1646  */
+#line 384 "cparse.y" /* yacc.c:1646  */
     { (yyval) = make_node(2,(yyvsp[-3]),(yyvsp[-2])); }
-#line 1786 "y.tab.c" /* yacc.c:1646  */
+#line 1796 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 35:
-#line 377 "cparse.y" /* yacc.c:1646  */
+#line 387 "cparse.y" /* yacc.c:1646  */
     { (yyval) = make_node(2,(yyvsp[-2]),(yyvsp[0])); }
-#line 1792 "y.tab.c" /* yacc.c:1646  */
+#line 1802 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 36:
-#line 378 "cparse.y" /* yacc.c:1646  */
+#line 388 "cparse.y" /* yacc.c:1646  */
     { (yyval) = make_node(3,(yyvsp[-4]),(yyvsp[-2]),(yyvsp[0])); }
-#line 1798 "y.tab.c" /* yacc.c:1646  */
+#line 1808 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 37:
-#line 381 "cparse.y" /* yacc.c:1646  */
+#line 391 "cparse.y" /* yacc.c:1646  */
     { (yyval) = make_node(1,(yyvsp[-1])); }
-#line 1804 "y.tab.c" /* yacc.c:1646  */
+#line 1814 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 38:
-#line 384 "cparse.y" /* yacc.c:1646  */
+#line 394 "cparse.y" /* yacc.c:1646  */
     {(yyval) = make_node(1, make_terminal_node(string(yytext, yyleng), int_node)); (yyval)->data_type = "int";}
-#line 1810 "y.tab.c" /* yacc.c:1646  */
+#line 1820 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 39:
-#line 385 "cparse.y" /* yacc.c:1646  */
+#line 395 "cparse.y" /* yacc.c:1646  */
     {(yyval) = make_node(1, make_terminal_node(string(yytext, yyleng), char_node)); (yyval)->data_type = "char";}
-#line 1816 "y.tab.c" /* yacc.c:1646  */
+#line 1826 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 40:
-#line 386 "cparse.y" /* yacc.c:1646  */
+#line 396 "cparse.y" /* yacc.c:1646  */
     {(yyval) = make_node(1, make_terminal_node(string(yytext, yyleng), float_node)); (yyval)->data_type = "float";}
-#line 1822 "y.tab.c" /* yacc.c:1646  */
+#line 1832 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 41:
-#line 387 "cparse.y" /* yacc.c:1646  */
+#line 397 "cparse.y" /* yacc.c:1646  */
     { 
 										if(!isPresent((yyvsp[0])->label))
 											printUndefinedMsg((yyvsp[0])->label);
@@ -1832,17 +1842,22 @@ yyreduce:
 											(yyval)->data_type = (yyvsp[0])->data_type;
 										}
 									}
-#line 1836 "y.tab.c" /* yacc.c:1646  */
+#line 1846 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 42:
-#line 396 "cparse.y" /* yacc.c:1646  */
-    {(yyval) = make_node(3,(yyvsp[-2]),(yyvsp[-1]),(yyvsp[0])); (yyval)->data_type = "int";}
-#line 1842 "y.tab.c" /* yacc.c:1646  */
+#line 406 "cparse.y" /* yacc.c:1646  */
+    {
+										(yyval) = make_node(3,(yyvsp[-2]),(yyvsp[-1]),(yyvsp[0])); 
+										(yyval)->data_type = "int";
+										if(!similarDataType((yyvsp[-2]), (yyvsp[0])))
+											printDtMismatch();
+									}
+#line 1857 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 43:
-#line 397 "cparse.y" /* yacc.c:1646  */
+#line 412 "cparse.y" /* yacc.c:1646  */
     { 
 										if(!isPresent((yyvsp[-3])->label))
 											printUndefinedMsg((yyvsp[-3])->label);
@@ -1854,53 +1869,53 @@ yyreduce:
 										else
 											cout << "Arguments mismatch for " << (yyvsp[-3])->label << " at line no. " << yylineno << endl; 
 									}
-#line 1858 "y.tab.c" /* yacc.c:1646  */
+#line 1873 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 44:
-#line 410 "cparse.y" /* yacc.c:1646  */
+#line 425 "cparse.y" /* yacc.c:1646  */
     {(yyval) = make_node(1, make_terminal_node(string(yytext, yyleng), op_node));}
-#line 1864 "y.tab.c" /* yacc.c:1646  */
+#line 1879 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 45:
-#line 411 "cparse.y" /* yacc.c:1646  */
+#line 426 "cparse.y" /* yacc.c:1646  */
     {(yyval) = make_node(1, make_terminal_node(string(yytext, yyleng), op_node));}
-#line 1870 "y.tab.c" /* yacc.c:1646  */
+#line 1885 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 46:
-#line 412 "cparse.y" /* yacc.c:1646  */
+#line 427 "cparse.y" /* yacc.c:1646  */
     {(yyval) = make_node(1, make_terminal_node(string(yytext, yyleng), op_node));}
-#line 1876 "y.tab.c" /* yacc.c:1646  */
+#line 1891 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 47:
-#line 415 "cparse.y" /* yacc.c:1646  */
+#line 430 "cparse.y" /* yacc.c:1646  */
     { (yyval) = make_terminal_node(string(yytext, yyleng), id_node); (yyval)->data_type = getDataType(string(yytext, yyleng));}
-#line 1882 "y.tab.c" /* yacc.c:1646  */
+#line 1897 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 48:
-#line 419 "cparse.y" /* yacc.c:1646  */
+#line 434 "cparse.y" /* yacc.c:1646  */
     {(yyval) = make_terminal_node(string(yytext, yyleng), dt_node);}
-#line 1888 "y.tab.c" /* yacc.c:1646  */
+#line 1903 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 50:
-#line 423 "cparse.y" /* yacc.c:1646  */
+#line 438 "cparse.y" /* yacc.c:1646  */
     { (yyval) = make_node(1,(yyvsp[0]));}
-#line 1894 "y.tab.c" /* yacc.c:1646  */
+#line 1909 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 51:
-#line 424 "cparse.y" /* yacc.c:1646  */
+#line 439 "cparse.y" /* yacc.c:1646  */
     { (yyval) = make_node(2,(yyvsp[-2]),(yyvsp[0]));}
-#line 1900 "y.tab.c" /* yacc.c:1646  */
+#line 1915 "y.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1904 "y.tab.c" /* yacc.c:1646  */
+#line 1919 "y.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -2128,7 +2143,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 426 "cparse.y" /* yacc.c:1906  */
+#line 441 "cparse.y" /* yacc.c:1906  */
 
 
 int main(void)

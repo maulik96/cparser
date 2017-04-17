@@ -193,6 +193,13 @@ node *make_terminal_node(string s, enum nodetype type)
     return temp;
 }
 
+bool similarDataType(node *a, node *b)
+{
+	if(a && b)
+		if(a->data_type == b->data_type)
+			return true;
+	return false;
+}
 
 void printMultiDeclMsg(string var)
 {
@@ -202,7 +209,10 @@ void printUndefinedMsg(string var)
 {
 	cout << "Undefined " << var << " at line no. " << yylineno << endl;
 }
-
+void printDtMismatch()
+{
+	cout << "Mismatching data types of operands at line no. " << yylineno << endl; 
+}
 void printSymTable()
 {
 	map<string, string>::iterator it;
@@ -393,7 +403,12 @@ expr 	: INT_LITERAL				{$$ = make_node(1, make_terminal_node(string(yytext, yyle
 											$$->data_type = $1->data_type;
 										}
 									}
-		| expr op expr 				{$$ = make_node(3,$1,$2,$3); $$->data_type = "int";}
+		| expr op expr 				{
+										$$ = make_node(3,$1,$2,$3); 
+										$$->data_type = "int";
+										if(!similarDataType($1, $3))
+											printDtMismatch();
+									}
 		| id '(' param_list ')' 	{ 
 										if(!isPresent($1->label))
 											printUndefinedMsg($1->label);
