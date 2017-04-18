@@ -102,6 +102,18 @@ bool isPresent(string s)
 	return false;
 }
 
+
+map<string, pair<int, vi> >::iterator findArrayTable(string s)
+{
+	int n = arrayTable.size();
+	for(int i=n-1;i>=0;i--)
+	{
+		if(arrayTable[i].find(s) != arrayTable[i].end())
+			return arrayTable[i].find(s);
+	}
+	return arrayTable[n-1].end();
+}
+
 bool isPresentCurrentScope(string s)
 {
 	int n = symbolTable.size();
@@ -248,7 +260,7 @@ void addToArrayTable(string name, node *a)
 int isValidArray(string name, node *a)
 {
 	int n = arrayTable.size();
-	map<string, pair<int,vi> >::iterator it = arrayTable[n-1].find(name);
+	map<string, pair<int,vi> >::iterator it = findArrayTable(name);
 	if(it==arrayTable[n-1].end())
 		return -1;
 	node *temp = a;
@@ -421,7 +433,7 @@ string generateIC(node *n)
 			node *temp = (n->v)[1];
 			while((temp->v).size()>0)
 			{
-				cout << "param " << ((temp->v)[0])->label << endl;
+				cout << "param " << generateIC((temp->v)[0]) << endl;
 				if((temp->v).size() == 1)
 					break;
 				temp = (temp->v)[1];
@@ -438,8 +450,12 @@ string generateIC(node *n)
 			node *temp = (n->v)[1];
 			while((temp->v).size() > 0)
 			{
-				string s = getNewReg();
-				cout << s << " = " << generateIC((temp->v)[0]) << "*4" << endl;
+				string s = getNewReg(), multiplier="4", dt = ((temp->v)[0])->data_type;
+				if(dt == "char")
+					multiplier = "1"; 
+				if(dt == "float")
+					multiplier = "8"; 
+				cout << s << " = " << generateIC((temp->v)[0]) << "*" << multiplier << endl;
 				final = getNewReg();
 				cout << final << " = " << r1 << "[" << s << "]" << endl;
 				if((temp->v).size() == 1)
@@ -448,6 +464,11 @@ string generateIC(node *n)
 				r1 = final;
 			}
 			return final;
+		}
+		case STRCT :
+		{
+			res = generateIC((n->v)[0]) + "." + generateIC((n->v)[1]);
+			break;
 		}
 		case ID:
 		{
