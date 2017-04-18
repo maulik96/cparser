@@ -8,6 +8,7 @@ typedef node * node_pointer;
 
 #define YYSTYPE node_pointer
 
+
 %}
 
 %define parse.error verbose
@@ -18,7 +19,7 @@ typedef node * node_pointer;
 
 %%
 
-start 	: strt_ 	{ $$ = make_node(1,$1);popSymTable();printCompleteSymTable();}
+start 	: strt_ 	{ $$ = make_node(1,$1);root=$$;}
 		;
 
 strt_	: 							{ $$ = make_node(0);}
@@ -46,6 +47,7 @@ function_definition : 	data_type id '(' arg_list ')' '{'	{
 															} 
  						stmt_list '}'					    {
  																$$ = make_node(4,$1,$2,$4,$8);
+ 																$$->code = FUNC_DEF;
  																popSymTable();
  																addToSymTable($2->label, $1->label);
  															}
@@ -134,6 +136,7 @@ compound_stmt	: '{'			{
 				stmt_list '}'	{ 
 									popSymTable();
 									$$ = make_node(1,$3);
+									$$->code = COMPD_STMT;
 								}	
 				;
 
@@ -149,27 +152,24 @@ stmt 	: declaration_stmt		{ $$ = make_node(1,$1); }
 		| error				
 		;
 
-loop_stmt	: WHILE '(' expr ')' stmt 	{ $$ = make_node(2,$2,$3); }
+loop_stmt	: WHILE '(' expr ')' stmt 	{ $$ = make_node(2,$3,$5); $$->code = LOOP_STMT; }
 			;
 
-if_stmt	: IF '(' expr ')' stmt 				{ $$ = make_node(2,$3,$5); }
-		| IF '(' expr ')' stmt ELSE stmt 	{ $$ = make_node(3,$3,$5,$7); }
+if_stmt	: IF '(' expr ')' stmt 				{ $$ = make_node(2,$3,$5); $$->code = IF_STMT;}
+		| IF '(' expr ')' stmt ELSE stmt 	{ $$ = make_node(3,$3,$5,$7); $$->code = IF_STMT;}
 		;
 
 expr_stmt	: expr ';'		{ $$ = make_node(1,$1); }
 			;
 
-expr 	: INT_LITERAL				{$$ = make_node(1, make_terminal_node(string(yytext, yyleng), int_node)); $$->data_type = "int";}
-		| CHAR_LITERAL				{$$ = make_node(1, make_terminal_node(string(yytext, yyleng), char_node)); $$->data_type = "char";}	
-		| FLOAT_LITERAL				{$$ = make_node(1, make_terminal_node(string(yytext, yyleng), float_node)); $$->data_type = "float";}
+expr 	: INT_LITERAL				{$$ = make_terminal_node(string(yytext, yyleng), int_node);}
+		| CHAR_LITERAL				{$$ = make_terminal_node(string(yytext, yyleng), char_node);}
+		| FLOAT_LITERAL				{$$ = make_terminal_node(string(yytext, yyleng), float_node);}
 		| id 						{ 
 										if(!isPresent($1->label))
 											printUndefinedMsg($1->label);
 										else
-										{
-											$$ = make_node(1,$1); 
-											$$->data_type = $1->data_type;
-										}
+											$$ = $1;
 									}
 		| id '.' id 				{
 										if(!isPresent($1->label))
@@ -184,6 +184,7 @@ expr 	: INT_LITERAL				{$$ = make_node(1, make_terminal_node(string(yytext, yyle
 											{
 												$$ = make_node(2,$1,$3);
 												$$->data_type = it->second;
+												$$->code = STRCT;
 											}
 											else
 												printNotMember($1->label, $3->label);
@@ -195,6 +196,7 @@ expr 	: INT_LITERAL				{$$ = make_node(1, make_terminal_node(string(yytext, yyle
 										else
 										{
 											$$ = make_node(2,$1,$2);
+											$$->code = ARRAY;
 											int n = isValidArray($1->label, $2);
 											if(n == 1)
 												$$->data_type = $1->data_type.substr(0,($1->data_type).size()-1);
@@ -212,6 +214,10 @@ expr 	: INT_LITERAL				{$$ = make_node(1, make_terminal_node(string(yytext, yyle
 		| expr op expr 				{
 										$$ = make_node(3,$1,$2,$3); 
 										$$->data_type = "int";
+										if($2->label == "=")
+											$$->code = ASSIGN_STMT;
+										else
+											$$->code = OP;
 										if(!similarDataType($1, $3))
 											printDtMismatch();
 									}
@@ -222,18 +228,22 @@ expr 	: INT_LITERAL				{$$ = make_node(1, make_terminal_node(string(yytext, yyle
 										{
 											$$ = make_node(2,$1,$3);
 											$$->data_type = $1->data_type;
+											$$->code = CALL_FUNC;
 										}
 										else
 											printArgsMismatch($1->label);
 									}
 		;
 
-op: 	  EQUAL_OP  {$$ = make_node(1, make_terminal_node(string(yytext, yyleng), op_node));}
-		| REL_OP 	{$$ = make_node(1, make_terminal_node(string(yytext, yyleng), op_node));}
-		| MATH_OP	{$$ = make_node(1, make_terminal_node(string(yytext, yyleng), op_node));}	
+op: 	  EQUAL_OP  {$$ = make_terminal_node(string(yytext, yyleng), op_node);}
+		| REL_OP 	{$$ = make_terminal_node(string(yytext, yyleng), op_node);}
+		| MATH_OP	{$$ = make_terminal_node(string(yytext, yyleng), op_node);}	
 		;
 						
-id 	: IDENTIFIER 	{ $$ = make_terminal_node(string(yytext, yyleng), id_node); $$->data_type = getDataType(string(yytext, yyleng));}
+id 	: IDENTIFIER 	{ 
+						$$ = make_terminal_node(string(yytext, yyleng), id_node); 
+						$$->data_type = getDataType(string(yytext, yyleng));
+					}
 	; 
 
 
@@ -254,10 +264,21 @@ param_list	:
 int main(void)
 {
 	pushSymTable();
-    return yyparse();
+    yyparse();
+    popSymTable();
+    if(!semanticError && !syntacticError)
+    {
+    	// printCompleteSymTable();
+    	// dfs(root,0);
+		pushSymTable();
+    	generateIC(root);
+    	popSymTable();
+    }
+    return 0;
 }
 
 void yyerror(const char *s)
 {
+	syntacticError = true;
     fprintf(stderr, "%s at line no %d\n", s, yylineno);
 }

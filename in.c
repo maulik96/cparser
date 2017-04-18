@@ -16,7 +16,7 @@ int main()
 {
 	int arr[10][100];
 	arr[2][50] = 2;
-	arr[2][500] = 2;
+	arr[2][5] = 2;
 	struct node x;
 	x.y = 2.5;
 	int a;
