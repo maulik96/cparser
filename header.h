@@ -362,6 +362,12 @@ string generateIC(node *n)
 		return res;
 	switch(n->code)
 	{
+		case FUNC_DEF :
+		{
+			cout << "func begin " << ((n->v)[1])->label << endl;
+			generateIC((n->v)[3]);
+			cout << "func end" << endl;
+		}
 		case COMPD_STMT:
 		{
 			pushSymTable();
@@ -410,9 +416,24 @@ string generateIC(node *n)
 			res = r;
 			break;
 		}
+		case CALL_FUNC :
+		{
+			node *temp = (n->v)[1];
+			while((temp->v).size()>0)
+			{
+				cout << "param " << ((temp->v)[0])->label << endl;
+				if((temp->v).size() == 1)
+					break;
+				temp = (temp->v)[1];
+			}
+			string r = getNewReg();
+			cout << "param " << r << endl;
+			cout << "call func " << ((n->v)[0])->label << endl;
+			return r;
+		}
 		case ID:
 		{
-			res = n->label+to_string(symbolTable.size()-1);
+			res = n->label;
 			break;
 		}
 		case INTEGER: 

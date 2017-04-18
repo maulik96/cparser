@@ -11,6 +11,10 @@ int strings(int x, int y, char c, float a)
 {
 }
 
+int fuck(int x)
+{
+
+}
 
 int main()
 {
@@ -18,9 +22,10 @@ int main()
 	arr[2][50] = 2;
 	arr[2][5] = 2;
 	struct node x;
+	fuck(2);
 	x.y = 2.5;
-	int a;
-	a = 5;
+	int a,b;
+	a = b;
 	if (a>0)
 	{
 		int a;
@@ -32,6 +37,7 @@ int main()
 		{
 			{
 				int k;
+				k = a;
 			}
 		}
 	}
