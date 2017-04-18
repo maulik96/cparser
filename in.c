@@ -18,10 +18,10 @@ int fuck(int x)
 
 int main()
 {
-	char arr[10];
+	int arr[10];
 	struct node x;
 	int i;
-	fuck(2);
+	i = fuck(2);
 	x.y = 2.5;
 	int a,b;
 	a = b;
@@ -43,7 +43,7 @@ int main()
 	while(i<10)
 	{
 		i = i+1;
-		arr[i] = arr[x.b];
+		arr[i] = i+1;
 	}
 	int c;
 	c = strings(a,x.c,'2',2.4);

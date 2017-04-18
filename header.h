@@ -376,7 +376,7 @@ string generateIC(node *n)
 	{
 		case FUNC_DEF :
 		{
-			cout << "func begin " << ((n->v)[1])->label << endl;
+			cout << "func begin " << generateIC((n->v)[1]) << endl;
 			generateIC((n->v)[3]);
 			cout << "func end" << endl;
 		}
@@ -440,7 +440,7 @@ string generateIC(node *n)
 			}
 			string r = getNewReg();
 			cout << "param " << r << endl;
-			cout << "call func " << ((n->v)[0])->label << endl;
+			cout << "call func " << generateIC((n->v)[0]) << endl;
 			return r;
 		}
 		case ARRAY : 
@@ -450,7 +450,7 @@ string generateIC(node *n)
 			node *temp = (n->v)[1];
 			while((temp->v).size() > 0)
 			{
-				string s = getNewReg(), multiplier="4", dt = ((temp->v)[0])->data_type;
+				string s = getNewReg(), multiplier="4", dt = n->data_type;
 				if(dt == "char")
 					multiplier = "1"; 
 				if(dt == "float")
@@ -471,10 +471,6 @@ string generateIC(node *n)
 			break;
 		}
 		case ID:
-		{
-			res = n->label;
-			break;
-		}
 		case INTEGER: 
 		case FLOAT: 
 		case CHAR: 
@@ -488,11 +484,5 @@ string generateIC(node *n)
 				generateIC((n->v)[i]);
 		}
 	}
-	// cout << res << endl;
 	return res;
 }
-
-
-
-
-
