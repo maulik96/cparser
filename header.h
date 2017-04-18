@@ -406,13 +406,13 @@ string generateIC(node *n)
 		}
 		case ASSIGN_STMT:
 		{
-			cout << generateIC((n->v)[0]) << "=" << generateIC((n->v)[2]) << endl;
+			cout << generateIC((n->v)[0]) << " = " << generateIC((n->v)[2]) << endl;
 			break;
 		}
 		case OP:
 		{
 			string r = getNewReg();
-			cout << r << "=" << generateIC((n->v)[0]) << ((n->v)[1])->label << generateIC((n->v)[2]) << endl;
+			cout << r << " = " << generateIC((n->v)[0]) << ((n->v)[1])->label << generateIC((n->v)[2]) << endl;
 			res = r;
 			break;
 		}
@@ -430,6 +430,24 @@ string generateIC(node *n)
 			cout << "param " << r << endl;
 			cout << "call func " << ((n->v)[0])->label << endl;
 			return r;
+		}
+		case ARRAY : 
+		{
+			string final, r1 = getNewReg();
+			cout << r1 << " = addr(" << generateIC((n->v)[0]) << ")" << endl;
+			node *temp = (n->v)[1];
+			while((temp->v).size() > 0)
+			{
+				string s = getNewReg();
+				cout << s << " = " << generateIC((temp->v)[0]) << "*4" << endl;
+				final = getNewReg();
+				cout << final << " = " << r1 << "[" << s << "]" << endl;
+				if((temp->v).size() == 1)
+					break;
+				temp = (temp->v)[1];
+				r1 = final;
+			}
+			return final;
 		}
 		case ID:
 		{
