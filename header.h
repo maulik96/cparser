@@ -9,7 +9,7 @@ using namespace std;
 #define mssi mss::iterator
 
 enum nodetype {nt_node, int_node, float_node, char_node, op_node, id_node, dt_node};
-enum codetype {DEFAULT, COMPD_STMT, LOOP_STMT, IF_STMT, ASSIGN_STMT, OP, ID, FUNC_DEF, CALL_FUNC, INTEGER, FLOAT, CHAR, STRCT, ARRAY};
+enum codetype {DEFAULT, COMPD_STMT, LOOP_STMT, IF_STMT, ASSIGN_STMT, OP, ID, FUNC_DEF, CALL_FUNC, INTEGER, FLOAT, CHAR, STRCT, ARRAY, RET, BRK};
 
 struct node {
 	vector<struct node * > v;
@@ -41,7 +41,11 @@ map<string, struct_dt>  structTable;
 map<string, function_dt> functionTable;
 vector<map<string, pair<int, vi> > > arrayTable;
 bool semanticError = false, syntacticError = false;
+bool inFuncScope = false;
+int loopLevel = 0;
+string curFunc = "";
 node *root;
+vs loopExitLabel;
 
 node *make_node(int nargs, ...)
 {
@@ -338,6 +342,21 @@ void printOutOfBoundsMsg(string a)
 	semanticError = true;
 	cout << "Array index out of bounds for " << a << " at line no. " << yylineno << endl; 
 }
+void printReturnDtMismatch()
+{
+	semanticError = true;
+	cout << "Return type does not match at line no. " << yylineno << endl; 
+}
+void printReturnNotInScope()
+{
+	semanticError = true;
+	cout << "Return statement not inside function at line no. " << yylineno << endl; 
+}
+void printBreakNotInScope()
+{
+	semanticError = true;
+	cout << "Break statement not inside loop at line no. " << yylineno << endl; 
+}
 void printSymTable()
 {
 	int n = symbolTable.size();
@@ -394,12 +413,14 @@ string generateIC(node *n)
 			string r1=generateIC((n->v)[0]);
 			string bodyLabel = genNewLabel();
 			string exitLabel = genNewLabel();
+			loopExitLabel.push_back(exitLabel);
 			cout<<"if "<<r1<<" goto "<<bodyLabel<<endl;
 			cout<<"goto "<<exitLabel<<endl;
 			cout<<bodyLabel<<endl;
 			generateIC((n->v)[1]);
 			cout<<"goto "<<entryLabel<<endl;
 			cout<<exitLabel<<endl;
+			loopExitLabel.pop_back();
 			break;
 		}
 		case IF_STMT:
@@ -468,6 +489,19 @@ string generateIC(node *n)
 		case STRCT :
 		{
 			res = generateIC((n->v)[0]) + "." + generateIC((n->v)[1]);
+			break;
+		}
+		case RET :
+		{
+			if((n->v).size()>0)
+				cout << "return " << generateIC((n->v)[0]) << endl;
+			else
+				cout << "return" << endl;
+			break;
+		}
+		case BRK:
+		{
+			cout << "goto " << loopExitLabel[loopExitLabel.size()-1] << endl;
 			break;
 		}
 		case ID:

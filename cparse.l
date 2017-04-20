@@ -17,7 +17,7 @@ ws [ \t\v\f\n]
 digits {digit}+
 number {digits}("."{digits})?(E("+"|"-")?{digits})?
 
-dt ("char"|"double"|"float"|"int"|"long"|"short"|"signed"|"static"|"unsigned")
+dt ("char"|"double"|"float"|"int"|"long"|"short"|"signed"|"static"|"unsigned"|"void")
 
 id {letter}({letter}|{digit})*
 

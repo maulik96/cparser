@@ -4,11 +4,11 @@ struct node{
 	int b,c,a;
 	char x;
 	float y;
-	// char b;
 };
 
 int strings(int x, int y, char c, float a)
 {
+	return 4;
 }
 
 int fuck(int x)
@@ -18,7 +18,8 @@ int fuck(int x)
 
 int main()
 {
-	int arr[10];
+	int arr[10][100];
+	arr[9][20] = 1;
 	struct node x;
 	int i;
 	i = fuck(2);
@@ -43,8 +44,10 @@ int main()
 	while(i<10)
 	{
 		i = i+1;
-		arr[i] = i+1;
+		if(i>4)
+			break;
+		arr[i][i] = i+1;
 	}
 	int c;
-	c = strings(a,x.c,'2',2.4);
+	c = strings(a,x.c,'2',2.3);
 }

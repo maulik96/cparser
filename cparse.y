@@ -33,6 +33,8 @@ ext_declaration : function_definition			{ $$ = make_node(1,$1);}
 				;
 
 function_definition : 	data_type id '(' arg_list ')' '{'	{	
+																inFuncScope = true;
+																curFunc = $2->label;
 																pushSymTable();	
 																if(!isPresent($2->label))
 																{
@@ -50,6 +52,7 @@ function_definition : 	data_type id '(' arg_list ')' '{'	{
  																$$->code = FUNC_DEF;
  																popSymTable();
  																addToSymTable($2->label, $1->label);
+ 																inFuncScope = false;
  															}
 					;
 
@@ -149,10 +152,50 @@ stmt 	: declaration_stmt		{ $$ = make_node(1,$1); }
 		| loop_stmt				{ $$ = make_node(1,$1); }
 		| if_stmt				{ $$ = make_node(1,$1); }
 		| expr_stmt				{ $$ = make_node(1,$1); }
+		| return_stmt			{ $$ = make_node(1,$1); }
+		| break_stmt			{ $$ = make_node(1,$1); }
 		| error				
 		;
 
-loop_stmt	: WHILE '(' expr ')' stmt 	{ $$ = make_node(2,$3,$5); $$->code = LOOP_STMT; }
+return_stmt	: RETURN expr ';'	{ 
+									if(!inFuncScope)
+										printReturnNotInScope();
+									else if(functionTable[curFunc].type != $2->data_type)
+									{
+										cout << getDataType(curFunc);
+										printReturnDtMismatch();
+									}
+									else 
+									{
+										$$ = make_node(1,$2); 
+										$$->code = RET;
+									}
+								}
+			| RETURN ';'		{ 
+									if(!inFuncScope)
+										printReturnNotInScope();
+									else if(functionTable[curFunc].type != "void")
+										printReturnDtMismatch();
+									else 
+									{
+										$$ = make_node(0); 
+										$$->code = RET;
+									}
+								}
+			;
+
+break_stmt	: BREAK ';' 		{ 
+									if(loopLevel>0)
+									{		
+										$$ = make_node(0); $$->code = BRK;
+									}
+									else
+										printBreakNotInScope();
+								}
+			;
+
+loop_stmt	: WHILE '(' expr ')'	{loopLevel++;} 
+				stmt 				{ $$ = make_node(2,$3,$6); $$->code = LOOP_STMT; loopLevel--;}
 			;
 
 if_stmt	: IF '(' expr ')' stmt 				{ $$ = make_node(2,$3,$5); $$->code = IF_STMT;}
@@ -268,7 +311,7 @@ int main(void)
     popSymTable();
     if(!semanticError && !syntacticError)
     {
-    	// printCompleteSymTable();
+    	printCompleteSymTable();
     	// dfs(root,0);
 		pushSymTable();
     	generateIC(root);
