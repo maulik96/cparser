@@ -16,7 +16,7 @@ struct node {
 	enum nodetype type;
 	enum codetype code;
 	string data_type;
-	string label;	
+	string label;
 };
 
 struct struct_dt {
@@ -138,7 +138,7 @@ vs giveArgList(node *a)
 		temp = (temp->v)[2];
 	}
 	return ans;
-}	
+}
 
 void addToSymTable(string a, string dt)
 {
@@ -164,14 +164,19 @@ void popSymTable()
 
 void printCompleteSymTable()
 {
-	cout << "Level\tvar\tdata tyoe" << endl;
+	string x = "-------------------------------------------------";
+	cout<<x<<endl;
+	printf("|%-15s|%-15s|%-15s|\n", "Nesting Level", "Variable Name", "Data Type");
+	cout<<x<<endl;
 	vector<pair<mss, int> >::iterator it;
 	for(it=completeTable.begin();it!=completeTable.end();it++)
 	{
 		mss m = it->first;
 		for(mssi j=m.begin();j!=m.end();j++)
-			cout << it->second << "\t" << j->first << "\t" << j->second << endl;
+			printf("|%-15d|%-15s|%-15s|\n", it->second, j->first.c_str(), j->second.c_str());
+			// printf(output_format, it->second, j->first.c_str(), j->second.c_str());
 	}
+	cout<<x<<endl;
 }
 
 void addListToSymTable(node *a)
@@ -185,7 +190,7 @@ void addListToSymTable(node *a)
 			break;
 		temp = (temp->v)[2];
 	}
-}	
+}
 vs getIdList(node *a)
 {
 	vs ans;
@@ -198,7 +203,7 @@ vs getIdList(node *a)
 		temp = (temp->v)[1];
 	}
 	return ans;
-}	
+}
 
 mss getAllVarsCurrentScope()
 {
@@ -325,37 +330,37 @@ void printUndefinedMsg(string var)
 void printDtMismatch()
 {
 	semanticError = true;
-	cout << "Mismatching data types of operands at line no. " << yylineno << endl; 
+	cout << "Mismatching data types of operands at line no. " << yylineno << endl;
 }
 void printNotMember(string a, string b)
 {
 	semanticError = true;
-	cout << b << "is not a member of " << a << " at line no. " << yylineno << endl; 
+	cout << b << "is not a member of " << a << " at line no. " << yylineno << endl;
 }
 void printArgsMismatch(string a)
 {
 	semanticError = true;
-	cout << "Arguments mismatch for " << a << " at line no. " << yylineno << endl; 
+	cout << "Arguments mismatch for " << a << " at line no. " << yylineno << endl;
 }
 void printOutOfBoundsMsg(string a)
 {
 	semanticError = true;
-	cout << "Array index out of bounds for " << a << " at line no. " << yylineno << endl; 
+	cout << "Array index out of bounds for " << a << " at line no. " << yylineno << endl;
 }
 void printReturnDtMismatch()
 {
 	semanticError = true;
-	cout << "Return type does not match at line no. " << yylineno << endl; 
+	cout << "Return type does not match at line no. " << yylineno << endl;
 }
 void printReturnNotInScope()
 {
 	semanticError = true;
-	cout << "Return statement not inside function at line no. " << yylineno << endl; 
+	cout << "Return statement not inside function at line no. " << yylineno << endl;
 }
 void printBreakNotInScope()
 {
 	semanticError = true;
-	cout << "Break statement not inside loop at line no. " << yylineno << endl; 
+	cout << "Break statement not inside loop at line no. " << yylineno << endl;
 }
 void printSymTable()
 {
@@ -464,7 +469,7 @@ string generateIC(node *n)
 			cout << "call func " << generateIC((n->v)[0]) << endl;
 			return r;
 		}
-		case ARRAY : 
+		case ARRAY :
 		{
 			string final, r1 = getNewReg();
 			cout << r1 << " = addr(" << generateIC((n->v)[0]) << ")" << endl;
@@ -473,9 +478,9 @@ string generateIC(node *n)
 			{
 				string s = getNewReg(), multiplier="4", dt = n->data_type;
 				if(dt == "char")
-					multiplier = "1"; 
+					multiplier = "1";
 				if(dt == "float")
-					multiplier = "8"; 
+					multiplier = "8";
 				cout << s << " = " << generateIC((temp->v)[0]) << "*" << multiplier << endl;
 				final = getNewReg();
 				cout << final << " = " << r1 << "[" << s << "]" << endl;
@@ -505,9 +510,9 @@ string generateIC(node *n)
 			break;
 		}
 		case ID:
-		case INTEGER: 
-		case FLOAT: 
-		case CHAR: 
+		case INTEGER:
+		case FLOAT:
+		case CHAR:
 		{
 			res = n->label;
 			break;
