@@ -3,6 +3,7 @@
 using namespace std;
 
 #define vi vector<int>
+#define ii pair<int, int>
 #define vs vector<string>
 #define vsi vs::iterator
 #define mss map<string, string>
@@ -36,7 +37,7 @@ extern int yylineno;
 extern char* yytext;
 extern int yyleng;
 vector<mss> symbolTable;
-vector<pair<mss, int> > completeTable;
+vector<pair<mss, ii> > completeTable;
 map<string, struct_dt>  structTable;
 map<string, function_dt> functionTable;
 vector<map<string, pair<int, vi> > > arrayTable;
@@ -46,6 +47,8 @@ int loopLevel = 0;
 string curFunc = "";
 node *root;
 vs loopExitLabel;
+vi startscope;
+
 
 node *make_node(int nargs, ...)
 {
@@ -150,6 +153,7 @@ void pushSymTable()
 {
 	mss temp;
 	symbolTable.push_back(temp);
+	startscope.push_back(yylineno);
 	map<string, pair<int, vi> > m;
 	arrayTable.push_back(m);
 }
@@ -157,26 +161,51 @@ void pushSymTable()
 void popSymTable()
 {
 	int n = symbolTable.size();
-	completeTable.push_back(make_pair(symbolTable[n-1], n-1));
+	completeTable.push_back(make_pair(symbolTable[n-1], make_pair(startscope[startscope.size()-1], yylineno)));
+	startscope.pop_back();
 	symbolTable.pop_back();
 	arrayTable.pop_back();
 }
 
 void printCompleteSymTable()
 {
-	string x = "-------------------------------------------------";
+	cout << "Symbol table" << endl;
+	string x = "---------------------------------------------------------------------------------";
 	cout<<x<<endl;
-	printf("|%-15s|%-15s|%-15s|\n", "Nesting Level", "Variable Name", "Data Type");
+	printf("|%-15s|%-15s|%-15s|%-15s|%-15s|\n",  "Name", "Data Type", "Type", "Scope begin", "Scope end");
 	cout<<x<<endl;
-	vector<pair<mss, int> >::iterator it;
+	vector<pair<mss, ii> >::iterator it;
 	for(it=completeTable.begin();it!=completeTable.end();it++)
 	{
 		mss m = it->first;
 		for(mssi j=m.begin();j!=m.end();j++)
-			printf("|%-15d|%-15s|%-15s|\n", it->second, j->first.c_str(), j->second.c_str());
+		{
+			string type = "variable";
+			if(functionTable.find(j->first.c_str()) != functionTable.end())
+				type = "function";
+			else if(structTable.find(j->second.c_str()) != structTable.end())
+				type = "struct var";
+			else if(j->second[j->second.size()-1] == '*')
+				type = "pointer";
+			printf("|%-15s|%-15s|%-15s|%-15d|%-15d|\n", j->first.c_str(), j->second.c_str(), type.c_str(), it->second.first, it->second.second);
+		}
 			// printf(output_format, it->second, j->first.c_str(), j->second.c_str());
 	}
-	cout<<x<<endl;
+	cout<< x << "\n\n\n";
+	cout << "Function table" << endl;
+	cout << x << endl;
+	printf("|%-15s|%-15s|%-47s|\n",  "Name", "Data Type", "Parameters");
+	cout << x << endl;
+	map<string, function_dt>::iterator i;
+	for(i=functionTable.begin();i!=functionTable.end();i++)
+	{
+		vs v = i->second.v;
+		string s = "";
+		for(int j=0;j<v.size();j++)
+			s += v[j] + " ";
+		printf("|%-15s|%-15s|%-47s|\n", i->first.c_str(), i->second.type.c_str(), s.c_str());
+	}
+	cout << x << endl << endl;
 }
 
 void addListToSymTable(node *a)
@@ -240,9 +269,14 @@ bool similarArgs(node *a, node *b)
 
 bool similarDataType(node *a, node *b)
 {
+	vs v = {"int", "float", "char"};
 	if(a && b)
+	{
+		if(find(v.begin(), v.end(),a->data_type)!=v.end() && find(v.begin(), v.end(), b->data_type)!=v.end())
+			return true;
 		if(a->data_type == b->data_type)
 			return true;
+	}
 	return false;
 }
 
@@ -361,6 +395,11 @@ void printBreakNotInScope()
 {
 	semanticError = true;
 	cout << "Break statement not inside loop at line no. " << yylineno << endl;
+}
+void printArrayIndexdt()
+{
+	semanticError = true;
+	cout << "Array index must be an integer at line no. " << yylineno << endl;	
 }
 void printSymTable()
 {

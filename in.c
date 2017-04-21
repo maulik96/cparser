@@ -16,6 +16,16 @@ int fuck(int x)
 
 }
 
+
+
+
+
+
+
+
+
+
+
 int main()
 {
 	int arr[10][100];
@@ -25,6 +35,7 @@ int main()
 	i = fuck(2);
 	x.y = 2.5;
 	int a,b;
+	int qwe[40];
 	a = b;
 	if (a>0)
 	{

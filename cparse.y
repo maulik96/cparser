@@ -121,16 +121,14 @@ declaration_stmt	: data_type id_list ';'	{
 					;
 
 brackets	: '[' expr ']' 			{
-										if($2->data_type == "int")
-											$$ = make_node(1,$2);
-										else
-											printDtMismatch();
+										if($2->data_type != "int")
+											printArrayIndexdt();
+										$$ = make_node(1,$2);
 									}
 			| '[' expr ']' brackets {
-										if($2->data_type == "int")
-											$$ = make_node(2,$2,$4);
-										else
-											printDtMismatch();
+										if($2->data_type != "int")
+											printArrayIndexdt();
+										$$ = make_node(2,$2,$4);
 									}
 
 compound_stmt	: '{'			{	
