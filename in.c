@@ -33,6 +33,7 @@ int main()
 	struct node x;
 	int i;
 	i = fuck(2);
+	a = 4;
 	x.y = 2.5;
 	int a,b;
 	int qwe[40];

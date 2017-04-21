@@ -81,7 +81,8 @@ struct_decl	: 	STRUCT id '{' 		{
 												struct_dt *temp = new struct_dt;
 												temp->v = getAllVarsCurrentScope();
 												structTable[$2->label] = *temp;
-												$$ = make_node(2,$2,$5);			
+												$$ = make_node(2,$2,$5);	
+												$$->code = STRUCT_DECL;		
 											}
 											else
 												printMultiDeclMsg($2->label);
@@ -281,10 +282,10 @@ op: 	  EQUAL_OP  {$$ = make_terminal_node(string(yytext, yyleng), op_node);}
 		| MATH_OP	{$$ = make_terminal_node(string(yytext, yyleng), op_node);}	
 		;
 						
-id 	: IDENTIFIER 	{ 
-						$$ = make_terminal_node(string(yytext, yyleng), id_node); 
-						$$->data_type = getDataType(string(yytext, yyleng));
-					}
+id 	: IDENTIFIER 		{ 
+							$$ = make_terminal_node(string(yytext, yyleng), id_node); 
+							$$->data_type = getDataType(string(yytext, yyleng));
+						}
 	; 
 
 
@@ -309,6 +310,7 @@ int main(void)
     popSymTable();
     if(!semanticError && !syntacticError)
     {
+		sort(completeTable.begin(), completeTable.end(), compare);
     	printCompleteSymTable();
     	// dfs(root,0);
 		pushSymTable();

@@ -10,7 +10,7 @@ using namespace std;
 #define mssi mss::iterator
 
 enum nodetype {nt_node, int_node, float_node, char_node, op_node, id_node, dt_node};
-enum codetype {DEFAULT, COMPD_STMT, LOOP_STMT, IF_STMT, ASSIGN_STMT, OP, ID, FUNC_DEF, CALL_FUNC, INTEGER, FLOAT, CHAR, STRCT, ARRAY, RET, BRK};
+enum codetype {DEFAULT, COMPD_STMT, LOOP_STMT, IF_STMT, ASSIGN_STMT, OP, ID, FUNC_DEF, CALL_FUNC, INTEGER, FLOAT, CHAR, STRCT, ARRAY, RET, BRK, STRUCT_DECL};
 
 struct node {
 	vector<struct node * > v;
@@ -29,6 +29,10 @@ struct function_dt {
 	string type;
 };
 
+struct compSym {
+	map<string, pair<string, int> >m;
+	int start, end, level;
+};
 
 void yyerror(const char *s);
 int yylex();
@@ -37,7 +41,7 @@ extern int yylineno;
 extern char* yytext;
 extern int yyleng;
 vector<mss> symbolTable;
-vector<pair<mss, ii> > completeTable;
+vector<compSym> completeTable;
 map<string, struct_dt>  structTable;
 map<string, function_dt> functionTable;
 vector<map<string, pair<int, vi> > > arrayTable;
@@ -48,6 +52,7 @@ string curFunc = "";
 node *root;
 vs loopExitLabel;
 vi startscope;
+int scope=0;
 
 
 node *make_node(int nargs, ...)
@@ -161,7 +166,13 @@ void pushSymTable()
 void popSymTable()
 {
 	int n = symbolTable.size();
-	completeTable.push_back(make_pair(symbolTable[n-1], make_pair(startscope[startscope.size()-1], yylineno)));
+	compSym *temp = new compSym;
+	for(mssi it=symbolTable[n-1].begin();it!=symbolTable[n-1].end();it++)
+		temp->m[it->first] = make_pair(it->second, 1);
+	temp->start = startscope[startscope.size()-1];
+	temp->end = yylineno;
+	temp->level = n-1;
+	completeTable.push_back(*temp);
 	startscope.pop_back();
 	symbolTable.pop_back();
 	arrayTable.pop_back();
@@ -169,32 +180,34 @@ void popSymTable()
 
 void printCompleteSymTable()
 {
+	int index = 0;
 	cout << "Symbol table" << endl;
-	string x = "---------------------------------------------------------------------------------";
+	string x = "-------------------------------------------------------------------------------------------------";
 	cout<<x<<endl;
-	printf("|%-15s|%-15s|%-15s|%-15s|%-15s|\n",  "Name", "Data Type", "Type", "Scope begin", "Scope end");
+	printf("|%-15s|%-15s|%-15s|%-15s|%-15s|%-15s|\n",  "Index", "Name", "Data Type", "Type", "Scope begin", "Scope end");
 	cout<<x<<endl;
-	vector<pair<mss, ii> >::iterator it;
+	vector<compSym >::iterator it;
 	for(it=completeTable.begin();it!=completeTable.end();it++)
 	{
-		mss m = it->first;
-		for(mssi j=m.begin();j!=m.end();j++)
+		map<string, pair<string, int> > m = it->m;
+		for(map<string, pair<string, int> >::iterator j=m.begin();j!=m.end();j++)
 		{
 			string type = "variable";
 			if(functionTable.find(j->first.c_str()) != functionTable.end())
 				type = "function";
-			else if(structTable.find(j->second.c_str()) != structTable.end())
+			else if(structTable.find(j->second.first.c_str()) != structTable.end())
 				type = "struct var";
-			else if(j->second[j->second.size()-1] == '*')
+			else if(j->second.first[j->second.first.size()-1] == '*')
 				type = "pointer";
-			printf("|%-15s|%-15s|%-15s|%-15d|%-15d|\n", j->first.c_str(), j->second.c_str(), type.c_str(), it->second.first, it->second.second);
+			it->m[j->first] = make_pair(j->second.first, index);
+			printf("|%-15d|%-15s|%-15s|%-15s|%-15d|%-15d|\n", index++, j->first.c_str(), j->second.first.c_str(), type.c_str(), it->start, it->end);
 		}
 			// printf(output_format, it->second, j->first.c_str(), j->second.c_str());
 	}
 	cout<< x << "\n\n\n";
 	cout << "Function table" << endl;
 	cout << x << endl;
-	printf("|%-15s|%-15s|%-47s|\n",  "Name", "Data Type", "Parameters");
+	printf("|%-15s|%-15s|%-63s|\n",  "Name", "Data Type", "Parameters");
 	cout << x << endl;
 	map<string, function_dt>::iterator i;
 	for(i=functionTable.begin();i!=functionTable.end();i++)
@@ -203,7 +216,7 @@ void printCompleteSymTable()
 		string s = "";
 		for(int j=0;j<v.size();j++)
 			s += v[j] + " ";
-		printf("|%-15s|%-15s|%-47s|\n", i->first.c_str(), i->second.type.c_str(), s.c_str());
+		printf("|%-15s|%-15s|%-63s|\n", i->first.c_str(), i->second.type.c_str(), s.c_str());
 	}
 	cout << x << endl << endl;
 }
@@ -430,6 +443,27 @@ string genNewLabel()
 	return "label"+l+":";
 }
 
+int findCompleteTable(string name)
+{
+	int curlevel = completeTable[scope].level;
+	for(int i=scope;i>=0;i--)
+	{
+		if(completeTable[i].level == curlevel)
+		{
+			map<string,pair<string, int> >::iterator it = completeTable[i].m.find(name); 
+			if(it!=completeTable[i].m.end())
+				return it->second.second;
+			curlevel--;
+		}
+	}
+	return -1;
+}
+
+bool compare(compSym a, compSym b)
+{
+	return a.start < b.start;
+}
+
 string generateIC(node *n)
 {
 	string res = "";
@@ -439,15 +473,23 @@ string generateIC(node *n)
 	{
 		case FUNC_DEF :
 		{
+			scope++;
 			cout << "func begin " << generateIC((n->v)[1]) << endl;
 			generateIC((n->v)[3]);
 			cout << "func end" << endl;
+			break;
+			// scope--;
+		}
+		case STRUCT_DECL : 
+		{
+			scope++;
+			break;
 		}
 		case COMPD_STMT:
 		{
-			pushSymTable();
+			scope++;
 			generateIC((n->v)[0]);
-			popSymTable;
+			// scope--;
 			break;
 		}
 		case LOOP_STMT:
@@ -532,7 +574,7 @@ string generateIC(node *n)
 		}
 		case STRCT :
 		{
-			res = generateIC((n->v)[0]) + "." + generateIC((n->v)[1]);
+			res = generateIC((n->v)[0]) + "." + ((n->v)[1])->label;
 			break;
 		}
 		case RET :
@@ -549,6 +591,10 @@ string generateIC(node *n)
 			break;
 		}
 		case ID:
+		{
+			res = "Symb[" + to_string(findCompleteTable(n->label)) + "]";
+			break;
+		}
 		case INTEGER:
 		case FLOAT:
 		case CHAR:
