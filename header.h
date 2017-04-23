@@ -55,6 +55,7 @@ vi startscope;
 int scope=0;
 vs ircode;
 vector<vs> quadform;
+vs qcode;
 
 node *make_node(int nargs, ...)
 {
@@ -470,7 +471,7 @@ bool compare(compSym a, compSym b)
 
 string generateIC(node *n)
 {
-	string res = "", s = "";
+	string res = "", s = "",t="", u="",v="";
 	if(n==NULL)
 		return res;
 	switch(n->code)
@@ -478,11 +479,24 @@ string generateIC(node *n)
 		case FUNC_DEF :
 		{
 			scope++;
-			s = "func begin " + generateIC((n->v)[1]);
-			ircode.push_back(s);
+			s = "func begin ";
+			t= generateIC((n->v)[1]);
+			ircode.push_back(s+t);
+			
+			qcode.push_back(s+t);
+			qcode.push_back("FBEG");
+			qcode.push_back(t);
+			quadform.push_back(qcode);
+			qcode.clear();
+
 			generateIC((n->v)[3]);
 			s = "func end";
 			ircode.push_back(s);
+
+			qcode.push_back(s);
+			qcode.push_back("FEND");
+			quadform.push_back(qcode);
+			qcode.clear();
 			break;
 		}
 		case STRUCT_DECL : 
@@ -501,21 +515,71 @@ string generateIC(node *n)
 			string entryLabel = genNewLabel();
 			s = entryLabel;
 			ircode.push_back(s);
+			
+			qcode.push_back(s);
+			s="LABEL";
+			qcode.push_back(s);
+			s=entryLabel;
+			qcode.push_back(s);
+			quadform.push_back(qcode);
+			qcode.clear();
+			
 			string r1=generateIC((n->v)[0]);
 			string bodyLabel = genNewLabel();
 			string exitLabel = genNewLabel();
 			loopExitLabel.push_back(exitLabel);
+			
 			s = "if " + r1 +  "goto" + bodyLabel;
 			ircode.push_back(s);
+			
+			qcode.push_back(s);
+			s="IF";
+			qcode.push_back(s);
+			qcode.push_back(r1);
+			qcode.push_back(bodyLabel);
+			quadform.push_back(qcode);
+			qcode.clear();
+			
 			s = "goto " + exitLabel;
 			ircode.push_back(s);
+			
+			qcode.push_back(s);
+			s="GOTO";
+			qcode.push_back(s);
+			qcode.push_back(exitLabel);
+			quadform.push_back(qcode);
+			qcode.clear();
+			
 			s = bodyLabel;
 			ircode.push_back(s);
+			
+			qcode.push_back(s);
+			s="LABEL";
+			qcode.push_back(s);
+			qcode.push_back(bodyLabel);
+			quadform.push_back(qcode);
+			qcode.clear();
+
 			generateIC((n->v)[1]);
 			s = "goto " + entryLabel;
 			ircode.push_back(s);
+
+			qcode.push_back(s);
+			s="GOTO";
+			qcode.push_back(s);
+			qcode.push_back(entryLabel);
+			quadform.push_back(qcode);
+			qcode.clear();
+
 			s = exitLabel;
 			ircode.push_back(s);
+
+			qcode.push_back(s);
+			s="LABEL";
+			qcode.push_back(s);
+			qcode.push_back(exitLabel);
+			quadform.push_back(qcode);
+			qcode.clear();
 			loopExitLabel.pop_back();
 			break;
 		}
@@ -526,28 +590,79 @@ string generateIC(node *n)
 			string falseLabel = genNewLabel();
 			s = "if " + r1 + " goto " + trueLabel;
 			ircode.push_back(s);
+
+			qcode.push_back(s);
+			s="IF";
+			qcode.push_back(s);
+			qcode.push_back(r1);
+			qcode.push_back(trueLabel);
+			quadform.push_back(qcode);
+			qcode.clear();
+
 			s = "goto " + falseLabel;
 			ircode.push_back(s);
+
+			qcode.push_back(s);
+			s="GOTO";
+			qcode.push_back(s);
+			qcode.push_back(falseLabel);
+			quadform.push_back(qcode);
+			qcode.clear();
 			s = trueLabel;
 			ircode.push_back(s);
+
+			qcode.push_back(s);
+			s="LABEL";
+			qcode.push_back(s);
+			qcode.push_back(trueLabel);
+			quadform.push_back(qcode);
+			qcode.clear();
+
 			generateIC((n->v)[1]);
 			s = falseLabel;
 			ircode.push_back(s);
+
+			qcode.push_back(s);
+			s="LABEL";
+			qcode.push_back(s);
+			qcode.push_back(falseLabel);
+			quadform.push_back(qcode);
+			qcode.clear();
 			if((n->v).size()==3)
 				generateIC((n->v)[2]);
 			break;
 		}
 		case ASSIGN_STMT:
 		{
-			s = generateIC((n->v)[0])  + " := " + generateIC((n->v)[2]);
-			ircode.push_back(s);
+			s = generateIC((n->v)[2]);
+			t= " := " ;
+			u =generateIC((n->v)[0]);
+			ircode.push_back(u+t+s);
+
+			qcode.push_back(u+t+s);
+			qcode.push_back("ASSIGN");
+			qcode.push_back(u);
+			qcode.push_back(s);
+			quadform.push_back(qcode);
+			qcode.clear();
 			break;
 		}
 		case OP:
 		{
 			string r = getNewReg();
-			s = r + " := " + generateIC((n->v)[0]) + ((n->v)[1])->label + generateIC((n->v)[2]);
-			ircode.push_back(s);
+			s = r + " := " ;
+			t= generateIC((n->v)[2]);
+			u= ((n->v)[1])->label;
+			v= generateIC((n->v)[0]);
+			ircode.push_back(s+v+u+t);
+
+			qcode.push_back(s+v+u+t);
+			qcode.push_back(u);
+			qcode.push_back(r);
+			qcode.push_back(v);
+			qcode.push_back(t);
+			quadform.push_back(qcode);
+			qcode.clear();
 			res = r;
 			break;
 		}
@@ -556,8 +671,15 @@ string generateIC(node *n)
 			node *temp = (n->v)[1];
 			while((temp->v).size()>0)
 			{
-				s = "param " + generateIC((temp->v)[0]);
-				ircode.push_back(s);
+				s = "param ";
+				t= generateIC((temp->v)[0]);
+				ircode.push_back(s+t);
+
+				qcode.push_back(s+t);
+				qcode.push_back("PAR");
+				qcode.push_back(t);
+				quadform.push_back(qcode);
+				qcode.clear();
 				if((temp->v).size() == 1)
 					break;
 				temp = (temp->v)[1];
@@ -565,15 +687,39 @@ string generateIC(node *n)
 			string r = getNewReg();
 			s = "param " + r;
 			ircode.push_back(s);
-			s = "call func " + generateIC((n->v)[0]);
-			ircode.push_back(s);
+
+			qcode.push_back(s);
+			qcode.push_back("PAR");
+			qcode.push_back(r);
+			quadform.push_back(qcode);
+			qcode.clear();
+
+			s = "call func " ;
+			t= generateIC((n->v)[0]);
+			ircode.push_back(s+ t);
+
+			qcode.push_back(s+ t);
+			qcode.push_back("FCALL");
+			qcode.push_back(t);
+			quadform.push_back(qcode);
+			qcode.clear();
 			return r;
 		}
 		case ARRAY :
 		{
 			string final, r1 = getNewReg();
-			s = r1 + " := addr(" + generateIC((n->v)[0]) + ")";
-			ircode.push_back(s);
+			s = r1 + " := addr(" ;
+			t= generateIC((n->v)[0]) ;
+			u= ")";
+			ircode.push_back(s+t+u);
+
+			qcode.push_back(s+t+u);
+			qcode.push_back("ADDR");
+			qcode.push_back(r1);
+			qcode.push_back(t);
+			quadform.push_back(qcode);
+			qcode.clear();
+
 			node *temp = (n->v)[1];
 			while((temp->v).size() > 0)
 			{
@@ -582,11 +728,31 @@ string generateIC(node *n)
 					multiplier = "1";
 				if(dt == "float")
 					multiplier = "8";
-				s = nr + " = " + generateIC((temp->v)[0]) + "*" +multiplier;
-				ircode.push_back(s);
+				s = nr + " := ";
+				t= generateIC((temp->v)[0]);
+				u= "*" ;
+				v=multiplier;
+				ircode.push_back(s+t+u+v);
+
+				qcode.push_back(s+t+u+v);
+				qcode.push_back("*");
+				qcode.push_back(nr);
+				qcode.push_back(t);
+				qcode.push_back(v);
+				quadform.push_back(qcode);
+				qcode.clear();
+
 				final = getNewReg();
-				s = final + " = " + r1 + "[" + nr + "]";
+				s = final + " := " + r1 + "[" + nr + "]";
 				ircode.push_back(s);
+
+				qcode.push_back(s);
+				qcode.push_back("ARR_REF");
+				qcode.push_back(r1);
+				qcode.push_back(nr);
+				quadform.push_back(qcode);
+				qcode.clear();
+
 				if((temp->v).size() == 1)
 					break;
 				temp = (temp->v)[1];
@@ -602,14 +768,37 @@ string generateIC(node *n)
 		case RET :
 		{
 			if((n->v).size()>0)
-				ircode.push_back("return " + generateIC((n->v)[0]));
+			{
+				s="return ";
+				t=generateIC((n->v)[0]);
+				ircode.push_back(s+t);
+
+				qcode.push_back(s+t);
+				qcode.push_back("RET");
+				qcode.push_back(t);
+				quadform.push_back(qcode);
+				qcode.clear();
+			}
 			else
+			{
 				ircode.push_back("return");
+
+				qcode.push_back("return");
+				qcode.push_back("RET");
+				quadform.push_back(qcode);
+				qcode.clear();
+			}
 			break;
 		}
 		case BRK:
 		{
 			ircode.push_back("goto " + loopExitLabel[loopExitLabel.size()-1]);
+
+			qcode.push_back("goto " + loopExitLabel[loopExitLabel.size()-1]);
+			qcode.push_back("GOTO");
+			qcode.push_back(loopExitLabel[loopExitLabel.size()-1]);
+			quadform.push_back(qcode);
+			qcode.clear();
 			break;
 		}
 		case ID:
@@ -631,4 +820,33 @@ string generateIC(node *n)
 		}
 	}
 	return res;
+}
+
+
+void printQuadTable()
+{
+
+	string x = "--------------------------------------------------------------------------------------------------------------------------------";
+	cout<<x<<endl;
+	
+	printf("\n\n\n\n");
+	printf("Quadruple form\n");
+	cout<<x<<endl;
+	printf("|%-63s|%-15s|%-15s|%-15s|%-15s|\n", "Three-Address-Code" ,"Operator", "Op1", "Op2","Op3");
+	cout<<x<<endl;
+
+	for(int i=0;i<quadform.size();i++)
+	{
+		printf("|%-63s",quadform[i][0].c_str());
+		for(int j=1;j<5;j++)
+		{
+			if(j<quadform[i].size())
+				printf("|%-15s",quadform[i][j].c_str());
+			else
+				printf("|%-15s","");
+		}
+		printf("|");
+		cout<<endl;
+	}
+	cout<<x<<endl;
 }

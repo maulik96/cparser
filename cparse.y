@@ -331,6 +331,7 @@ int main(void)
     	generateIC(root);
     	for(int i=0;i<ircode.size();i++)
     		cout << ircode[i] << endl;
+    	printQuadTable();
     	popSymTable();
     }
     return 0;
