@@ -18,7 +18,7 @@ digits {digit}+
 number {digits}("."{digits})?(E("+"|"-")?{digits})?
 
 dt ("char"|"double"|"float"|"int"|"long"|"short"|"signed"|"static"|"unsigned"|"void")
-
+pointer @
 id {letter}({letter}|{digit})*
 
 %%
@@ -62,7 +62,14 @@ id {letter}({letter}|{digit})*
 "-"                                     {return (MATH_OP);}
 "/"                                     {return (MATH_OP);}
 "*"                                     {return (MATH_OP);}
+"%"                                     {return (MATH_OP);}
 "="                                     {return (EQUAL_OP);}
+"&&"                                     {return LOGICAL_OP;}
+"||"                                     {return LOGICAL_OP;}
+"|"                                     {return BIT_OP;}
+"&"                                     {return BIT_OP;}
+"^"                                     {return BIT_OP;}
+"~"                                     {return BIT_OP;}
 ";"                                     {return(';'); }
 ("{"|"<%")                              {return('{'); }
 ("}"|"%>")                              {return('}'); }
@@ -73,13 +80,10 @@ id {letter}({letter}|{digit})*
 ("["|"<:")                              {return('['); }
 ("]"|":>")                              {return(']'); }
 "."                                     {return('.'); }
-"&"                                     {return('&'); }
 "!"                                     {return('!'); }
-"~"                                     {return('~'); }
-"%"                                     {return('%'); }
-"^"                                     {return('^'); }
-"|"                                     {return('|'); }
 "?"                                     {return('?'); }
+"@"                                     {return('@'); }
+"$"                                     {return('$'); }
 {ws}                                    {}
 .                                       {}
 

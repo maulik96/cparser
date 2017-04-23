@@ -13,7 +13,7 @@ typedef node * node_pointer;
 
 %define parse.error verbose
 
-%token IF ELSE WHILE DO FOR RETURN CONTINUE BREAK STRUCT STRING_LITERAL CHAR_LITERAL DATA_TYPE INT_LITERAL FLOAT_LITERAL IDENTIFIER ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN AND_ASSIGN XOR_ASSIGN OR_ASSIGN RIGHT_OP LEFT_OP INC_OP DEC_OP REL_OP MATH_OP EQUAL_OP
+%token IF ELSE WHILE DO FOR RETURN CONTINUE BREAK STRUCT STRING_LITERAL CHAR_LITERAL DATA_TYPE INT_LITERAL FLOAT_LITERAL IDENTIFIER ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN AND_ASSIGN XOR_ASSIGN OR_ASSIGN RIGHT_OP LEFT_OP INC_OP DEC_OP REL_OP MATH_OP EQUAL_OP LOGICAL_OP BIT_OP
 
 %start start
 
@@ -32,10 +32,10 @@ ext_declaration : function_definition			{ $$ = make_node(1,$1);}
 				| expr_stmt						{ $$ = make_node(1,$1);}
 				;
 
-function_definition : 	data_type id '(' arg_list ')' '{'	{	
+function_definition : 	data_type id '(' arg_list ')' '{'	{
 																inFuncScope = true;
 																curFunc = $2->label;
-																pushSymTable();	
+																pushSymTable();
 																if(!isPresent($2->label))
 																{
 																	function_dt *temp = new function_dt;
@@ -46,7 +46,7 @@ function_definition : 	data_type id '(' arg_list ')' '{'	{
 																}
 																else
 																	printMultiDeclMsg($2->label);
-															} 
+															}
  						stmt_list '}'					    {
  																$$ = make_node(4,$1,$2,$4,$8);
  																$$->code = FUNC_DEF;
@@ -56,7 +56,7 @@ function_definition : 	data_type id '(' arg_list ')' '{'	{
  															}
 					;
 
-function_declaration: data_type id '(' arg_list ')' ';' { 
+function_declaration: data_type id '(' arg_list ')' ';' {
 															if(!isPresent($2->label))
 															{
 																function_dt *temp = new function_dt;
@@ -71,9 +71,9 @@ function_declaration: data_type id '(' arg_list ')' ';' {
 														}
 					;
 
-struct_decl	: 	STRUCT id '{' 		{	
-										pushSymTable();	
-									} 
+struct_decl	: 	STRUCT id '{' 		{
+										pushSymTable();
+									}
 
 				declaration_list '}' ';'{
 											if(!isPresent($2->label))
@@ -81,8 +81,8 @@ struct_decl	: 	STRUCT id '{' 		{
 												struct_dt *temp = new struct_dt;
 												temp->v = getAllVarsCurrentScope();
 												structTable[$2->label] = *temp;
-												$$ = make_node(2,$2,$5);	
-												$$->code = STRUCT_DECL;		
+												$$ = make_node(2,$2,$5);
+												$$->code = STRUCT_DECL;
 											}
 											else
 												printMultiDeclMsg($2->label);
@@ -95,8 +95,10 @@ declaration_list	: declaration_stmt						{$$ = make_node(1, $1);}
 					| declaration_stmt declaration_list		{$$ = make_node(2, $1, $2);}
 					;
 
-id_list	: id 				{$$ = make_node(1, $1);}
-		| id ',' id_list	{$$ = make_node(2, $1, $3);}
+id_list	: id 					{$$ = make_node(1, $1);}
+		| '@' id    			{$2->code = POINTER; $$ = make_node(1, $2); }
+		| id ',' id_list		{$$ = make_node(2, $1, $3);}
+		| '@' id ',' id_list   	{$2->code = POINTER; $$ = make_node(2, $2, $4); }
 		;
 
 arg_list	: 								{$$ = make_node(0);}
@@ -110,12 +112,20 @@ declaration_stmt	: data_type id_list ';'	{
 														if(isPresentCurrentScope(*it))
 															printMultiDeclMsg(*it);
 														else
-															addToSymTable(*it, $1->label);
+														{
+															if ((*it)[0]=='@')
+															{
+																*it = (*it).substr(1);
+																addToSymTable(*it, $1->label+"@");
+															}
+															else
+																addToSymTable(*it, $1->label);
+														}
 													}
 													$$ = make_node(2, $1, $2);
 												}
 					| data_type id brackets ';' {
-													$$ = make_node(3,$1,$2,$3); 
+													$$ = make_node(3,$1,$2,$3);
 													addToSymTable($2->label, $1->label+"*");
 													addToArrayTable($2->label, $3);
 												}
@@ -132,14 +142,14 @@ brackets	: '[' expr ']' 			{
 										$$ = make_node(2,$2,$4);
 									}
 
-compound_stmt	: '{'			{	
-									pushSymTable();	
-								} 
-				stmt_list '}'	{ 
+compound_stmt	: '{'			{
+									pushSymTable();
+								}
+				stmt_list '}'	{
 									popSymTable();
 									$$ = make_node(1,$3);
 									$$->code = COMPD_STMT;
-								}	
+								}
 				;
 
 stmt_list	: 					{ $$ = make_node(0); }
@@ -153,10 +163,10 @@ stmt 	: declaration_stmt		{ $$ = make_node(1,$1); }
 		| expr_stmt				{ $$ = make_node(1,$1); }
 		| return_stmt			{ $$ = make_node(1,$1); }
 		| break_stmt			{ $$ = make_node(1,$1); }
-		| error				
+		| error
 		;
 
-return_stmt	: RETURN expr ';'	{ 
+return_stmt	: RETURN expr ';'	{
 									if(!inFuncScope)
 										printReturnNotInScope();
 									else if(functionTable[curFunc].type != $2->data_type)
@@ -164,28 +174,28 @@ return_stmt	: RETURN expr ';'	{
 										cout << getDataType(curFunc);
 										printReturnDtMismatch();
 									}
-									else 
+									else
 									{
-										$$ = make_node(1,$2); 
+										$$ = make_node(1,$2);
 										$$->code = RET;
 									}
 								}
-			| RETURN ';'		{ 
+			| RETURN ';'		{
 									if(!inFuncScope)
 										printReturnNotInScope();
 									else if(functionTable[curFunc].type != "void")
 										printReturnDtMismatch();
-									else 
+									else
 									{
-										$$ = make_node(0); 
+										$$ = make_node(0);
 										$$->code = RET;
 									}
 								}
 			;
 
-break_stmt	: BREAK ';' 		{ 
+break_stmt	: BREAK ';' 		{
 									if(loopLevel>0)
-									{		
+									{
 										$$ = make_node(0); $$->code = BRK;
 									}
 									else
@@ -193,7 +203,7 @@ break_stmt	: BREAK ';' 		{
 								}
 			;
 
-loop_stmt	: WHILE '(' expr ')'	{loopLevel++;} 
+loop_stmt	: WHILE '(' expr ')'	{loopLevel++;}
 				stmt 				{ $$ = make_node(2,$3,$6); $$->code = LOOP_STMT; loopLevel--;}
 			;
 
@@ -207,12 +217,14 @@ expr_stmt	: expr ';'		{ $$ = make_node(1,$1); }
 expr 	: INT_LITERAL				{$$ = make_terminal_node(string(yytext, yyleng), int_node);}
 		| CHAR_LITERAL				{$$ = make_terminal_node(string(yytext, yyleng), char_node);}
 		| FLOAT_LITERAL				{$$ = make_terminal_node(string(yytext, yyleng), float_node);}
-		| id 						{ 
+		| id 						{
 										if(!isPresent($1->label))
 											printUndefinedMsg($1->label);
 										else
 											$$ = $1;
 									}
+		| '@' id					{$$ = make_node(1, $2); $$->data_type = $2->data_type.substr(0, $2->data_type.size()-1);}
+		| '$' id					{$$ = make_node(1, $2); $$->data_type = $2->data_type+"@";}
 		| id '.' id 				{
 										if(!isPresent($1->label))
 											printUndefinedMsg($1->label);
@@ -254,7 +266,7 @@ expr 	: INT_LITERAL				{$$ = make_terminal_node(string(yytext, yyleng), int_node
 										}
 									}
 		| expr op expr 				{
-										$$ = make_node(3,$1,$2,$3); 
+										$$ = make_node(3,$1,$2,$3);
 										$$->data_type = "int";
 										if($2->label == "=")
 											$$->code = ASSIGN_STMT;
@@ -263,7 +275,7 @@ expr 	: INT_LITERAL				{$$ = make_terminal_node(string(yytext, yyleng), int_node
 										if(!similarDataType($1, $3))
 											printDtMismatch();
 									}
-		| id '(' param_list ')' 	{ 
+		| id '(' param_list ')' 	{
 										if(!isPresent($1->label))
 											printUndefinedMsg($1->label);
 										else if(similarArgs($1, $3))
@@ -279,14 +291,16 @@ expr 	: INT_LITERAL				{$$ = make_terminal_node(string(yytext, yyleng), int_node
 
 op: 	  EQUAL_OP  {$$ = make_terminal_node(string(yytext, yyleng), op_node);}
 		| REL_OP 	{$$ = make_terminal_node(string(yytext, yyleng), op_node);}
-		| MATH_OP	{$$ = make_terminal_node(string(yytext, yyleng), op_node);}	
+		| MATH_OP	{$$ = make_terminal_node(string(yytext, yyleng), op_node);}
+		| LOGICAL_OP	{$$ = make_terminal_node(string(yytext, yyleng), op_node);}
+		| BIT_OP	{$$ = make_terminal_node(string(yytext, yyleng), op_node);}
 		;
-						
-id 	: IDENTIFIER 		{ 
-							$$ = make_terminal_node(string(yytext, yyleng), id_node); 
+
+id 	: IDENTIFIER 		{
+							$$ = make_terminal_node(string(yytext, yyleng), id_node);
 							$$->data_type = getDataType(string(yytext, yyleng));
 						}
-	; 
+	;
 
 
 data_type 	: DATA_TYPE {$$ = make_terminal_node(string(yytext, yyleng), dt_node);}
@@ -295,9 +309,9 @@ data_type 	: DATA_TYPE {$$ = make_terminal_node(string(yytext, yyleng), dt_node)
 								printUndefinedMsg("struct "+$2->label);
 							$$ = make_terminal_node($2->label, dt_node);
 						}
-			; 
+			;
 
-param_list	: 
+param_list	:
 			| expr 					{ $$ = make_node(1,$1);}
 			| expr ',' param_list	{ $$ = make_node(2,$1,$3);}
 

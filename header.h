@@ -10,7 +10,7 @@ using namespace std;
 #define mssi mss::iterator
 
 enum nodetype {nt_node, int_node, float_node, char_node, op_node, id_node, dt_node};
-enum codetype {DEFAULT, COMPD_STMT, LOOP_STMT, IF_STMT, ASSIGN_STMT, OP, ID, FUNC_DEF, CALL_FUNC, INTEGER, FLOAT, CHAR, STRCT, ARRAY, RET, BRK, STRUCT_DECL};
+enum codetype {DEFAULT, COMPD_STMT, LOOP_STMT, IF_STMT, ASSIGN_STMT, OP, ID, FUNC_DEF, CALL_FUNC, INTEGER, FLOAT, CHAR, STRCT, ARRAY, RET, BRK, STRUCT_DECL, POINTER};
 
 struct node {
 	vector<struct node * > v;
@@ -239,7 +239,10 @@ vs getIdList(node *a)
 	node *temp = a;
 	while((temp->v).size()>0)
 	{
-		ans.push_back(((temp->v)[0])->label);
+		if((temp->v)[0]->code == POINTER)
+			ans.push_back("@"+(((temp->v)[0])->label));
+		else
+			ans.push_back(((temp->v)[0])->label);
 		if((temp->v).size() == 1)
 			break;
 		temp = (temp->v)[1];
@@ -412,7 +415,7 @@ void printBreakNotInScope()
 void printArrayIndexdt()
 {
 	semanticError = true;
-	cout << "Array index must be an integer at line no. " << yylineno << endl;	
+	cout << "Array index must be an integer at line no. " << yylineno << endl;
 }
 void printSymTable()
 {
@@ -450,7 +453,7 @@ int findCompleteTable(string name)
 	{
 		if(completeTable[i].level == curlevel)
 		{
-			map<string,pair<string, int> >::iterator it = completeTable[i].m.find(name); 
+			map<string,pair<string, int> >::iterator it = completeTable[i].m.find(name);
 			if(it!=completeTable[i].m.end())
 				return it->second.second;
 			curlevel--;
@@ -480,7 +483,7 @@ string generateIC(node *n)
 			break;
 			// scope--;
 		}
-		case STRUCT_DECL : 
+		case STRUCT_DECL :
 		{
 			scope++;
 			break;
