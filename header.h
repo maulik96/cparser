@@ -53,7 +53,8 @@ node *root;
 vs loopExitLabel;
 vi startscope;
 int scope=0;
-
+vs ircode;
+vector<vs> quadform;
 
 node *make_node(int nargs, ...)
 {
@@ -469,7 +470,7 @@ bool compare(compSym a, compSym b)
 
 string generateIC(node *n)
 {
-	string res = "";
+	string res = "", s = "";
 	if(n==NULL)
 		return res;
 	switch(n->code)
@@ -477,13 +478,14 @@ string generateIC(node *n)
 		case FUNC_DEF :
 		{
 			scope++;
-			cout << "func begin " << generateIC((n->v)[1]) << endl;
+			s = "func begin " + generateIC((n->v)[1]);
+			ircode.push_back(s);
 			generateIC((n->v)[3]);
-			cout << "func end" << endl;
+			s = "func end";
+			ircode.push_back(s);
 			break;
-			// scope--;
 		}
-		case STRUCT_DECL :
+		case STRUCT_DECL : 
 		{
 			scope++;
 			break;
@@ -492,23 +494,28 @@ string generateIC(node *n)
 		{
 			scope++;
 			generateIC((n->v)[0]);
-			// scope--;
 			break;
 		}
 		case LOOP_STMT:
 		{
 			string entryLabel = genNewLabel();
-			cout << entryLabel << endl;
+			s = entryLabel;
+			ircode.push_back(s);
 			string r1=generateIC((n->v)[0]);
 			string bodyLabel = genNewLabel();
 			string exitLabel = genNewLabel();
 			loopExitLabel.push_back(exitLabel);
-			cout<<"if "<<r1<<" goto "<<bodyLabel<<endl;
-			cout<<"goto "<<exitLabel<<endl;
-			cout<<bodyLabel<<endl;
+			s = "if " + r1 +  "goto" + bodyLabel;
+			ircode.push_back(s);
+			s = "goto " + exitLabel;
+			ircode.push_back(s);
+			s = bodyLabel;
+			ircode.push_back(s);
 			generateIC((n->v)[1]);
-			cout<<"goto "<<entryLabel<<endl;
-			cout<<exitLabel<<endl;
+			s = "goto " + entryLabel;
+			ircode.push_back(s);
+			s = exitLabel;
+			ircode.push_back(s);
 			loopExitLabel.pop_back();
 			break;
 		}
@@ -517,24 +524,30 @@ string generateIC(node *n)
 			string r1=generateIC((n->v)[0]);
 			string trueLabel = genNewLabel();
 			string falseLabel = genNewLabel();
-			cout<<"if "<<r1<<" goto "<<trueLabel<<endl;
-			cout<<"goto "<<falseLabel<<endl;
-			cout<<trueLabel<<endl;
+			s = "if " + r1 + " goto " + trueLabel;
+			ircode.push_back(s);
+			s = "goto " + falseLabel;
+			ircode.push_back(s);
+			s = trueLabel;
+			ircode.push_back(s);
 			generateIC((n->v)[1]);
-			cout<<falseLabel<<endl;
+			s = falseLabel;
+			ircode.push_back(s);
 			if((n->v).size()==3)
 				generateIC((n->v)[2]);
 			break;
 		}
 		case ASSIGN_STMT:
 		{
-			cout << generateIC((n->v)[0]) << " = " << generateIC((n->v)[2]) << endl;
+			s = generateIC((n->v)[0])  + " := " + generateIC((n->v)[2]);
+			ircode.push_back(s);
 			break;
 		}
 		case OP:
 		{
 			string r = getNewReg();
-			cout << r << " = " << generateIC((n->v)[0]) << ((n->v)[1])->label << generateIC((n->v)[2]) << endl;
+			s = r + " := " + generateIC((n->v)[0]) + ((n->v)[1])->label + generateIC((n->v)[2]);
+			ircode.push_back(s);
 			res = r;
 			break;
 		}
@@ -543,31 +556,37 @@ string generateIC(node *n)
 			node *temp = (n->v)[1];
 			while((temp->v).size()>0)
 			{
-				cout << "param " << generateIC((temp->v)[0]) << endl;
+				s = "param " + generateIC((temp->v)[0]);
+				ircode.push_back(s);
 				if((temp->v).size() == 1)
 					break;
 				temp = (temp->v)[1];
 			}
 			string r = getNewReg();
-			cout << "param " << r << endl;
-			cout << "call func " << generateIC((n->v)[0]) << endl;
+			s = "param " + r;
+			ircode.push_back(s);
+			s = "call func " + generateIC((n->v)[0]);
+			ircode.push_back(s);
 			return r;
 		}
 		case ARRAY :
 		{
 			string final, r1 = getNewReg();
-			cout << r1 << " = addr(" << generateIC((n->v)[0]) << ")" << endl;
+			s = r1 + " := addr(" + generateIC((n->v)[0]) + ")";
+			ircode.push_back(s);
 			node *temp = (n->v)[1];
 			while((temp->v).size() > 0)
 			{
-				string s = getNewReg(), multiplier="4", dt = n->data_type;
+				string nr = getNewReg(), multiplier="4", dt = n->data_type;
 				if(dt == "char")
 					multiplier = "1";
 				if(dt == "float")
 					multiplier = "8";
-				cout << s << " = " << generateIC((temp->v)[0]) << "*" << multiplier << endl;
+				s = nr + " = " + generateIC((temp->v)[0]) + "*" +multiplier;
+				ircode.push_back(s);
 				final = getNewReg();
-				cout << final << " = " << r1 << "[" << s << "]" << endl;
+				s = final + " = " + r1 + "[" + nr + "]";
+				ircode.push_back(s);
 				if((temp->v).size() == 1)
 					break;
 				temp = (temp->v)[1];
@@ -583,14 +602,14 @@ string generateIC(node *n)
 		case RET :
 		{
 			if((n->v).size()>0)
-				cout << "return " << generateIC((n->v)[0]) << endl;
+				ircode.push_back("return " + generateIC((n->v)[0]));
 			else
-				cout << "return" << endl;
+				ircode.push_back("return");
 			break;
 		}
 		case BRK:
 		{
-			cout << "goto " << loopExitLabel[loopExitLabel.size()-1] << endl;
+			ircode.push_back("goto " + loopExitLabel[loopExitLabel.size()-1]);
 			break;
 		}
 		case ID:

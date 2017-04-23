@@ -329,6 +329,8 @@ int main(void)
     	// dfs(root,0);
 		pushSymTable();
     	generateIC(root);
+    	for(int i=0;i<ircode.size();i++)
+    		cout << ircode[i] << endl;
     	popSymTable();
     }
     return 0;
