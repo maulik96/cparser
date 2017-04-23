@@ -35,7 +35,7 @@ int main()
 	i = fuck(2);
 	a = 4;
 	x.y = 2.5;
-	int a,@bhosda;
+	int a, @bhosda;
 	bhosda = $a;
 	if (a>0)
 	{
@@ -43,6 +43,8 @@ int main()
 		a = a-1;
 		// int a;
 	}
+	else
+		i = i+1;
 	{
 		{
 			{

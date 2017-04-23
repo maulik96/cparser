@@ -1,0 +1,100 @@
+Symbol table
+-----------------------------------------------------------------------------------------------------------------
+|Index          |Name           |Data Type      |Type           |Nesting level  |Scope begin    |Scope end      |
+-----------------------------------------------------------------------------------------------------------------
+|0              |a              |int            |variable       |0              |1              |67             |
+|1              |fuck           |int            |function       |0              |1              |67             |
+|2              |main           |int            |function       |0              |1              |67             |
+|3              |node           |struct         |variable       |0              |1              |67             |
+|4              |strings        |int            |function       |0              |1              |67             |
+|5              |a              |int            |variable       |1              |3              |7              |
+|6              |b              |int            |variable       |1              |3              |7              |
+|7              |c              |int            |variable       |1              |3              |7              |
+|8              |x              |char           |variable       |1              |3              |7              |
+|9              |y              |float          |variable       |1              |3              |7              |
+|10             |a              |float          |variable       |1              |10             |12             |
+|11             |c              |char           |variable       |1              |10             |12             |
+|12             |x              |int            |variable       |1              |10             |12             |
+|13             |y              |int            |variable       |1              |10             |12             |
+|14             |x              |int            |variable       |1              |15             |17             |
+|15             |a              |int            |variable       |1              |30             |66             |
+|16             |arr            |int*           |array          |1              |30             |66             |
+|17             |bhosda         |int@           |pointer        |1              |30             |66             |
+|18             |c              |int            |variable       |1              |30             |66             |
+|19             |i              |int            |variable       |1              |30             |66             |
+|20             |x              |node           |struct var     |1              |30             |66             |
+|21             |a              |int            |variable       |2              |41             |45             |
+|22             |k              |int            |variable       |4              |50             |53             |
+-----------------------------------------------------------------------------------------------------------------
+
+
+Function table
+-----------------------------------------------------------------------------------------------------------------
+|Name           |Data Type      |Parameters                                                                     |
+-----------------------------------------------------------------------------------------------------------------
+|fuck           |int            |int                                                                            |
+|main           |int            |                                                                               |
+|strings        |int            |int int char float                                                             |
+-----------------------------------------------------------------------------------------------------------------
+
+Symb[0] := 4
+func begin Symb[4]
+return 4
+func end
+func begin Symb[1]
+func end
+func begin Symb[2]
+r0 := addr(Symb[16])
+r1 = 9*4
+r2 = r0[r1]
+r3 = 20*4
+r4 = r2[r3]
+r4 := 1
+param 2
+param r5
+call func Symb[1]
+Symb[19] := r5
+Symb[15] := 4
+Symb[20].y := 2.5
+Symb[17] := addr(Symb[15])
+r6 := Symb[15]>0
+if r6 goto label0:
+goto label1:
+label0:
+r7 := Symb[21]-1
+Symb[21] := r7
+label1:
+r8 := Symb[19]+1
+Symb[19] := r8
+Symb[22] := Symb[15]
+Symb[19] := 0
+label2:
+r9 := Symb[19]<10
+if r9gotolabel3:
+goto label4:
+label3:
+r10 := Symb[19]+1
+Symb[19] := r10
+r11 := Symb[19]>4
+if r11 goto label5:
+goto label6:
+label5:
+goto label4:
+label6:
+r12 := Symb[19]+1
+r13 := addr(Symb[16])
+r14 = Symb[19]*4
+r15 = r13[r14]
+r16 = Symb[19]*4
+r17 = r15[r16]
+r17 := r12
+goto label2:
+label4:
+param Symb[15]
+param Symb[20].c
+param '2'
+param 2.3
+param r18
+call func Symb[4]
+Symb[18] := r18
+func end

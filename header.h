@@ -10,7 +10,7 @@ using namespace std;
 #define mssi mss::iterator
 
 enum nodetype {nt_node, int_node, float_node, char_node, op_node, id_node, dt_node};
-enum codetype {DEFAULT, COMPD_STMT, LOOP_STMT, IF_STMT, ASSIGN_STMT, OP, ID, FUNC_DEF, CALL_FUNC, INTEGER, FLOAT, CHAR, STRCT, ARRAY, RET, BRK, STRUCT_DECL, POINTER};
+enum codetype {DEFAULT, COMPD_STMT, LOOP_STMT, IF_STMT, ASSIGN_STMT, OP, ID, FUNC_DEF, CALL_FUNC, INTEGER, FLOAT, CHAR, STRCT, ARRAY, RET, BRK, STRUCT_DECL, POINTER, REFPTR, DEREFPTR};
 
 struct node {
 	vector<struct node * > v;
@@ -184,9 +184,9 @@ void printCompleteSymTable()
 {
 	int index = 0;
 	cout << "Symbol table" << endl;
-	string x = "-------------------------------------------------------------------------------------------------";
+	string x = "-----------------------------------------------------------------------------------------------------------------";
 	cout<<x<<endl;
-	printf("|%-15s|%-15s|%-15s|%-15s|%-15s|%-15s|\n",  "Index", "Name", "Data Type", "Type", "Scope begin", "Scope end");
+	printf("|%-15s|%-15s|%-15s|%-15s|%-15s|%-15s|%-15s|\n",  "Index", "Name", "Data Type", "Type", "Nesting level", "Scope begin", "Scope end");
 	cout<<x<<endl;
 	vector<compSym >::iterator it;
 	for(it=completeTable.begin();it!=completeTable.end();it++)
@@ -200,16 +200,18 @@ void printCompleteSymTable()
 			else if(structTable.find(j->second.first.c_str()) != structTable.end())
 				type = "struct var";
 			else if(j->second.first[j->second.first.size()-1] == '*')
+				type = "array";
+			else if(j->second.first[j->second.first.size()-1] == '@')
 				type = "pointer";
 			it->m[j->first] = make_pair(j->second.first, index);
-			printf("|%-15d|%-15s|%-15s|%-15s|%-15d|%-15d|\n", index++, j->first.c_str(), j->second.first.c_str(), type.c_str(), it->start, it->end);
+			printf("|%-15d|%-15s|%-15s|%-15s|%-15d|%-15d|%-15d|\n", index++, j->first.c_str(), j->second.first.c_str(), type.c_str(), it->level, it->start, it->end);
 		}
 			// printf(output_format, it->second, j->first.c_str(), j->second.c_str());
 	}
 	cout<< x << "\n\n\n";
 	cout << "Function table" << endl;
 	cout << x << endl;
-	printf("|%-15s|%-15s|%-63s|\n",  "Name", "Data Type", "Parameters");
+	printf("|%-15s|%-15s|%-79s|\n",  "Name", "Data Type", "Parameters");
 	cout << x << endl;
 	map<string, function_dt>::iterator i;
 	for(i=functionTable.begin();i!=functionTable.end();i++)
@@ -218,7 +220,7 @@ void printCompleteSymTable()
 		string s = "";
 		for(int j=0;j<v.size();j++)
 			s += v[j] + " ";
-		printf("|%-15s|%-15s|%-63s|\n", i->first.c_str(), i->second.type.c_str(), s.c_str());
+		printf("|%-15s|%-15s|%-79s|\n", i->first.c_str(), i->second.type.c_str(), s.c_str());
 	}
 	cout << x << endl << endl;
 }
@@ -529,7 +531,7 @@ string generateIC(node *n)
 			string exitLabel = genNewLabel();
 			loopExitLabel.push_back(exitLabel);
 			
-			s = "if " + r1 +  "goto" + bodyLabel;
+			s = "if " + r1 +  " goto " + bodyLabel;
 			ircode.push_back(s);
 			
 			qcode.push_back(s);
@@ -668,6 +670,7 @@ string generateIC(node *n)
 		}
 		case CALL_FUNC :
 		{
+			int params = 0;
 			node *temp = (n->v)[1];
 			while((temp->v).size()>0)
 			{
@@ -678,6 +681,7 @@ string generateIC(node *n)
 				qcode.push_back(s+t);
 				qcode.push_back("PAR");
 				qcode.push_back(t);
+				params++;
 				quadform.push_back(qcode);
 				qcode.clear();
 				if((temp->v).size() == 1)
@@ -698,9 +702,11 @@ string generateIC(node *n)
 			t= generateIC((n->v)[0]);
 			ircode.push_back(s+ t);
 
-			qcode.push_back(s+ t);
+			qcode.push_back(s+ t + ", " + to_string(params+1));
 			qcode.push_back("FCALL");
 			qcode.push_back(t);
+			qcode.push_back("");
+			qcode.push_back(to_string(params+1));
 			quadform.push_back(qcode);
 			qcode.clear();
 			return r;
@@ -806,6 +812,16 @@ string generateIC(node *n)
 			res = "Symb[" + to_string(findCompleteTable(n->label)) + "]";
 			break;
 		}
+		case DEREFPTR:
+		{
+			res = "@"+generateIC((n->v)[0]);
+			break;
+		}
+		case REFPTR:
+		{
+			res = "addr("+generateIC((n->v)[0])+")";
+			break;
+		}
 		case INTEGER:
 		case FLOAT:
 		case CHAR:
@@ -826,10 +842,9 @@ string generateIC(node *n)
 void printQuadTable()
 {
 
-	string x = "--------------------------------------------------------------------------------------------------------------------------------";
-	cout<<x<<endl;
+	string x = "---------------------------------------------------------------------------------------------------------------------------------";
 	
-	printf("\n\n\n\n");
+	printf("\n\n");
 	printf("Quadruple form\n");
 	cout<<x<<endl;
 	printf("|%-63s|%-15s|%-15s|%-15s|%-15s|\n", "Three-Address-Code" ,"Operator", "Op1", "Op2","Op3");

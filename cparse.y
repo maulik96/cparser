@@ -223,8 +223,22 @@ expr 	: INT_LITERAL				{$$ = make_terminal_node(string(yytext, yyleng), int_node
 										else
 											$$ = $1;
 									}
-		| '@' id					{$$ = make_node(1, $2); $$->data_type = $2->data_type.substr(0, $2->data_type.size()-1);}
-		| '$' id					{$$ = make_node(1, $2); $$->data_type = $2->data_type+"@";}
+		| '@' id					{
+										if(!isPresent($2->label))
+											printUndefinedMsg($2->label);
+										else
+										{
+											$$ = make_node(1, $2); $$->data_type = $2->data_type.substr(0, $2->data_type.size()-1);$$->code=DEREFPTR;
+										}
+									}
+		| '$' id					{
+										if(!isPresent($2->label))
+											printUndefinedMsg($2->label);
+										else
+										{
+											$$ = make_node(1, $2); $$->data_type = $2->data_type+"@";$$->code=REFPTR;
+										}
+									}
 		| id '.' id 				{
 										if(!isPresent($1->label))
 											printUndefinedMsg($1->label);
@@ -329,8 +343,6 @@ int main(void)
     	// dfs(root,0);
 		pushSymTable();
     	generateIC(root);
-    	for(int i=0;i<ircode.size();i++)
-    		cout << ircode[i] << endl;
     	printQuadTable();
     	popSymTable();
     }
