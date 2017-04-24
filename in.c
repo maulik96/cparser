@@ -4,6 +4,7 @@ struct node{
 	int b,c,a;
 	char x;
 	float y;
+
 };
 
 int strings(int x, int y, char c, float a)
@@ -11,19 +12,10 @@ int strings(int x, int y, char c, float a)
 	return 4;
 }
 
-int fuck(int x)
+int myFunc(int x)
 {
 
 }
-
-
-
-
-
-
-
-
-
 
 
 int main()
@@ -32,11 +24,11 @@ int main()
 	arr[9][20] = 1;
 	struct node x;
 	int i;
-	i = fuck(2);
+	i = myFunc(2);
 	a = 4;
 	x.y = 2.5;
-	int a, @bhosda;
-	bhosda = $a;
+	int a, @count;
+    arr[9][10] = @count;
 	if (a>0)
 	{
 		int a;

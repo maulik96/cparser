@@ -21,10 +21,13 @@ dt ("char"|"double"|"float"|"int"|"long"|"short"|"signed"|"static"|"unsigned"|"v
 pointer @
 id {letter}({letter}|{digit})*
 
+
 %%
 
+"#include".*                            {}
+"#define".*                             {}
 "//".*                                  {}
-"/*"                                    { comment(); }
+"/*"                                    {comment();}
 "if"                                    {return IF;}
 "else"                                  {return ELSE;}
 "while"                                 {return WHILE;}
@@ -40,18 +43,18 @@ id {letter}({letter}|{digit})*
 {digits}                                {return INT_LITERAL;}
 {number}                                {return FLOAT_LITERAL;}
 {id}                                    {return IDENTIFIER;}
-"+="                                    {return(ADD_ASSIGN); }
-"-="                                    {return(SUB_ASSIGN); }
-"*="                                    {return(MUL_ASSIGN); }
-"/="                                    {return(DIV_ASSIGN); }
-"%="                                    {return(MOD_ASSIGN); }
-"&="                                    {return(AND_ASSIGN); }
-"^="                                    {return(XOR_ASSIGN); }
-"|="                                    {return(OR_ASSIGN); }
-">>"                                    {return(RIGHT_OP); }
-"<<"                                    {return(LEFT_OP); }
-"++"                                    {return(INC_OP); }
-"--"                                    {return(DEC_OP); }
+"+="                                    {return (ADD_ASSIGN);}
+"-="                                    {return (SUB_ASSIGN);}
+"*="                                    {return (MUL_ASSIGN);}
+"/="                                    {return (DIV_ASSIGN);}
+"%="                                    {return (MOD_ASSIGN);}
+"&="                                    {return (AND_ASSIGN);}
+"^="                                    {return (XOR_ASSIGN);}
+"|="                                    {return (OR_ASSIGN);}
+">>"                                    {return (RIGHT_OP);}
+"<<"                                    {return (LEFT_OP);}
+"++"                                    {return (INC_OP);}
+"--"                                    {return (DEC_OP);}
 "=="                                    {return (REL_OP);}
 ">="                                    {return (REL_OP);}
 "<="                                    {return (REL_OP);}
@@ -64,51 +67,52 @@ id {letter}({letter}|{digit})*
 "*"                                     {return (MATH_OP);}
 "%"                                     {return (MATH_OP);}
 "="                                     {return (EQUAL_OP);}
-"&&"                                     {return LOGICAL_OP;}
-"||"                                     {return LOGICAL_OP;}
+"&&"                                    {return LOGICAL_OP;}
+"||"                                    {return LOGICAL_OP;}
 "|"                                     {return BIT_OP;}
 "&"                                     {return BIT_OP;}
 "^"                                     {return BIT_OP;}
 "~"                                     {return BIT_OP;}
-";"                                     {return(';'); }
-("{"|"<%")                              {return('{'); }
-("}"|"%>")                              {return('}'); }
-","                                     {return(','); }
-":"                                     {return(':'); }
-"("                                     {return('('); }
-")"                                     {return(')'); }
-("["|"<:")                              {return('['); }
-("]"|":>")                              {return(']'); }
-"."                                     {return('.'); }
-"!"                                     {return('!'); }
-"?"                                     {return('?'); }
-"@"                                     {return('@'); }
-"$"                                     {return('$'); }
+";"                                     {return (';');}
+("{"|"<%")                              {return ('{');}
+("}"|"%>")                              {return ('}');}
+","                                     {return (',');}
+":"                                     {return (':');}
+"("                                     {return ('(');}
+")"                                     {return (')');}
+("["|"<:")                              {return ('[');}
+("]"|":>")                              {return (']');}
+"."                                     {return ('.');}
+"!"                                     {return ('!');}
+"?"                                     {return ('?');}
+"@"                                     {return ('@');}
+"$"                                     {return ('$');}
 {ws}                                    {}
 .                                       {}
 
 %%
+
 
 int yywrap(void)
 {
     return 1;
 }
 
+
 static void comment(void)
 {
     int c;
 
     while ((c = yyinput()) != 0)
+    {
         if (c == '*')
         {
-            while ((c = yyinput()) == '*')
-                ;
-
+            while ((c = yyinput()) == '*');
             if (c == '/')
                 return;
-
             if (c == 0)
                 break;
         }
+    }
     yyerror("unterminated comment");
 }
