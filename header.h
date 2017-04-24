@@ -394,57 +394,68 @@ void dfs(node *root,int level)
 void printMultiDeclMsg(string var)
 {
     semanticError = true;
-    cout << "Multiple declarations for " << var << " at line no. " << yylineno << endl;
+    cout << "ERROR: At line no. " << yylineno << endl;
+    cout << "       Multiple declarations for " << var << endl;
 }
 void printUndefinedMsg(string var)
 {
     semanticError = true;
-    cout << "Undefined " << var << " at line no. " << yylineno << endl;
+    cout << "ERROR: At line no. " << yylineno << endl;
+    cout << "       Undefined identifier " << var << endl;
 }
 void printOpCompatibilityError(string var)
 {
     semanticError = true;
-    cout << "Operator " << var << " not compatible at line no. " << yylineno << endl;
+    cout << "ERROR: At line no. " << yylineno << endl;
+    cout << "       Operator " << var << " not compatible with given operands" << endl;
 }
 void printDtMismatch()
 {
     semanticError = true;
-    cout << "Mismatching data types of operands at line no. " << yylineno << endl;
+    cout << "ERROR: At line no. " << yylineno << endl;
+    cout << "       Mismatching data types of operands" << endl;
 }
 void printNotMember(string a, string b)
 {
     semanticError = true;
-    cout << b << "is not a member of " << a << " at line no. " << yylineno << endl;
+    cout << "ERROR: At line no. " << yylineno << endl;
+    cout << "       " << b << "is not a member of " << a << endl;
 }
 void printArgsMismatch(string a)
 {
     semanticError = true;
-    cout << "Arguments mismatch for " << a << " at line no. " << yylineno << endl;
+    cout << "ERROR: At line no. " << yylineno << endl;
+    cout << "       Arguments mismatch for " << a << endl;
 }
 void printOutOfBoundsMsg(string a)
 {
     semanticError = true;
-    cout << "Array index out of bounds for " << a << " at line no. " << yylineno << endl;
+    cout << "ERROR: At line no. " << yylineno << endl;
+    cout << "       Array index out of bounds for " << a << endl;
 }
 void printReturnDtMismatch()
 {
     semanticError = true;
-    cout << "Return type does not match at line no. " << yylineno << endl;
+    cout << "ERROR: At line no. " << yylineno << endl;
+    cout << "       Return type does not match" << endl;
 }
 void printReturnNotInScope()
 {
     semanticError = true;
-    cout << "Return statement not inside function at line no. " << yylineno << endl;
+    cout << "ERROR: At line no. " << yylineno << endl;
+    cout << "       Return statement not inside function" << endl;
 }
 void printBreakNotInScope()
 {
     semanticError = true;
-    cout << "Break statement not inside loop at line no. " << yylineno << endl;
+    cout << "ERROR: At line no. " << yylineno << endl;
+    cout << "       Break statement not inside loop" << endl;
 }
 void printArrayIndexdt()
 {
     semanticError = true;
-    cout << "Array index must be an integer at line no. " << yylineno << endl;
+    cout << "ERROR: At line no. " << yylineno << endl;
+    cout << "       Array index must be an integer" << endl;
 }
 
 /* Print current scope symbol table */
